@@ -81,7 +81,6 @@ function App() {
   // Timers and simulation
   const [memorizeTimeRemainingMs, setMemorizeTimeRemainingMs] = useState<number>(0);
   const [totalMemorizeTimeMs, setTotalMemorizeTimeMs] = useState<number>(0);
-  const [rotationTimeRemainingMs, setRotationTimeRemainingMs] = useState<number>(5000);
   const timerRef = useRef<number | null>(null);
   const rotationTimerRef = useRef<number | null>(null);
   const autoAdvanceTimerRef = useRef<number | null>(null);
@@ -148,34 +147,10 @@ function App() {
     };
   }, []);
 
-  // Puzzle Mode 5-second rotation phase auto-run countdown timer
+  // Unlimited rotation time in Puzzle Mode (no auto-run timer)
   useEffect(() => {
     if (gameMode === 'PUZZLE' && gameState === 'PREDICT') {
-      setRotationTimeRemainingMs(5000);
-
       if (rotationTimerRef.current) clearInterval(rotationTimerRef.current);
-
-      const intervalMs = 100;
-      rotationTimerRef.current = window.setInterval(() => {
-        setRotationTimeRemainingMs((prev) => {
-          if (prev <= intervalMs) {
-            if (rotationTimerRef.current) {
-              clearInterval(rotationTimerRef.current);
-              rotationTimerRef.current = null;
-            }
-            triggerPuzzleTrajectoryTest();
-            return 0;
-          }
-          return prev - intervalMs;
-        });
-      }, intervalMs);
-
-      return () => {
-        if (rotationTimerRef.current) {
-          clearInterval(rotationTimerRef.current);
-          rotationTimerRef.current = null;
-        }
-      };
     }
   }, [gameMode, gameState]);
 
@@ -200,10 +175,21 @@ function App() {
       setLaunchPoint(puzzleData.launcher);
       setTargetExit(puzzleData.targetExit);
       
-      const hintCoords = puzzleData.scrambledBumpers
-        .filter(b => puzzleData.invertedBumperIds.has(b.id))
-        .map(b => `(${b.x + 1}, ${b.y + 1})`);
-      setPuzzleSolutionHint(hintCoords.length > 0 ? hintCoords.join(', ') : 'None');
+      // Collect cell coordinates of bumpers that are ACTUALLY HIT along the solution trajectory path
+      const hitBumperCoords = new Set<string>();
+      puzzleData.solutionPath.forEach(step => {
+        if (step.isBumperHit) {
+          hitBumperCoords.add(`${step.x},${step.y}`);
+        }
+      });
+
+      // Filter inverted bumpers to ONLY those that are actually hit along the trajectory path (excluding decoy non-hit bumpers!)
+      const relevantInvertedBumpers = puzzleData.scrambledBumpers.filter(
+        b => puzzleData.invertedBumperIds.has(b.id) && hitBumperCoords.has(`${b.x},${b.y}`)
+      );
+
+      const hintCoords = relevantInvertedBumpers.map(b => `(${b.x + 1}, ${b.y + 1})`);
+      setPuzzleSolutionHint(hintCoords.length > 0 ? hintCoords.join(', ') : 'None (Path already aligned!)');
 
       const currentPath = tracePath(config.gridSize, puzzleData.scrambledBumpers, puzzleData.launcher);
       setPath(currentPath);
@@ -475,7 +461,6 @@ function App() {
             targetExit={targetExit}
             onRotateBumper={handleRotateBumper}
             canRotate={gameState === 'PREDICT'}
-            rotationTimeRemainingMs={rotationTimeRemainingMs}
           />
 
           {gameMode === 'PUZZLE' && puzzleSolutionHint && (
