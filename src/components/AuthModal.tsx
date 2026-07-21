@@ -59,13 +59,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
   return (
     <div className="modal-backdrop">
-      <div className="solid-card modal-card-content" style={{ maxWidth: '420px' }}>
+      <div className="auth-modal-card">
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 className="modal-title-header" style={{ border: 'none', padding: 0 }}>
-            {tab === 'signin' ? 'Sign In to Account' : 'Create Account'}
-          </h2>
-          <button type="button" onClick={onClose} className="icon-btn" style={{ width: '32px', height: '32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+          <div>
+            <h2 className="modal-title-header" style={{ border: 'none', padding: 0, margin: 0, fontSize: '1.25rem' }}>
+              {tab === 'signin' ? 'Sign In to Account' : 'Create New Account'}
+            </h2>
+            <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>
+              Sync stats & compete on global cloud leaderboards
+            </p>
+          </div>
+          <button type="button" onClick={onClose} className="auth-close-btn" aria-label="Close modal">
             <X style={{ width: '16px', height: '16px' }} />
           </button>
         </div>
@@ -121,35 +126,36 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           </div>
         ) : (
           <>
-            {/* Tab selector */}
-            <div className="tab-bar-container">
+            {/* Segmented Tab Selector */}
+            <div className="auth-segmented-control">
               <button
                 type="button"
                 onClick={() => { setTab('signin'); setErrorMsg(null); }}
-                className={`tab-btn-item ${tab === 'signin' ? 'active' : ''}`}
+                className={`auth-segment-btn ${tab === 'signin' ? 'active' : ''}`}
               >
                 <LogIn style={{ width: '15px', height: '15px' }} />
-                Sign In
+                <span>Sign In</span>
               </button>
               <button
                 type="button"
                 onClick={() => { setTab('signup'); setErrorMsg(null); }}
-                className={`tab-btn-item ${tab === 'signup' ? 'active' : ''}`}
+                className={`auth-segment-btn ${tab === 'signup' ? 'active' : ''}`}
               >
                 <UserPlus style={{ width: '15px', height: '15px' }} />
-                Create Account
+                <span>Create Account</span>
               </button>
             </div>
 
-            {/* Error / Success messages */}
+            {/* Notifications */}
             {errorMsg && (
               <div style={{
-                padding: '0.6rem 0.85rem',
+                padding: '0.65rem 0.85rem',
                 borderRadius: '8px',
                 background: 'rgba(239, 68, 68, 0.15)',
                 border: '1px solid rgba(239, 68, 68, 0.3)',
                 color: '#f87171',
-                fontSize: '0.8rem'
+                fontSize: '0.8rem',
+                margin: '0.4rem 0'
               }}>
                 {errorMsg}
               </div>
@@ -157,7 +163,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
             {successMsg && (
               <div style={{
-                padding: '0.6rem 0.85rem',
+                padding: '0.65rem 0.85rem',
                 borderRadius: '8px',
                 background: 'rgba(34, 197, 94, 0.15)',
                 border: '1px solid rgba(34, 197, 94, 0.3)',
@@ -165,7 +171,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 fontSize: '0.8rem',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem'
+                gap: '0.4rem',
+                margin: '0.4rem 0'
               }}>
                 <CheckCircle2 style={{ width: '16px', height: '16px' }} />
                 {successMsg}
@@ -173,7 +180,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', marginTop: '0.4rem' }}>
               <div className="auth-field-group">
                 <label className="auth-field-label">Username</label>
                 <div className="auth-input-wrapper">
@@ -207,10 +214,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary"
-                style={{ width: '100%', marginTop: '0.5rem' }}
+                className="auth-submit-btn"
               >
-                {loading ? 'Connecting to Supabase...' : (tab === 'signin' ? 'Sign In' : 'Create Account')}
+                {tab === 'signin' ? <LogIn style={{ width: '16px', height: '16px' }} /> : <UserPlus style={{ width: '16px', height: '16px' }} />}
+                <span>{loading ? 'Processing...' : (tab === 'signin' ? 'Sign In' : 'Create Account')}</span>
               </button>
             </form>
           </>
