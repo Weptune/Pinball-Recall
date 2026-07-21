@@ -280,9 +280,15 @@ function App() {
   const handleRotateBumper = (bumperId: string) => {
     if (gameMode !== 'PUZZLE' || gameState !== 'PREDICT') return;
 
+    soundEngine.playClick();
+
     setClickedBumperIds((prev) => {
       const next = new Set(prev);
-      next.add(bumperId);
+      if (next.has(bumperId)) {
+        next.delete(bumperId);
+      } else {
+        next.add(bumperId);
+      }
       return next;
     });
 
