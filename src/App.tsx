@@ -182,6 +182,7 @@ function App() {
 
   // Puzzle solution hint state for recording demo
   const [puzzleSolutionHint, setPuzzleSolutionHint] = useState<string>('');
+  const [showSolutionHint, setShowSolutionHint] = useState<boolean>(false);
 
   // Set up a new round
   const startNewRound = (nextLevel: number, mode: 'RECALL' | 'PUZZLE' = gameMode) => {
@@ -192,6 +193,7 @@ function App() {
     setMinHits(config.minHits);
     setSelectedExit(null);
     setClickedBumperIds(new Set());
+    setShowSolutionHint(false);
 
     if (rotationTimerRef.current) clearInterval(rotationTimerRef.current);
 
@@ -214,8 +216,9 @@ function App() {
         b => puzzleData.invertedBumperIds.has(b.id) && hitBumperCoords.has(`${b.x},${b.y}`)
       );
 
-      const hintCoords = relevantInvertedBumpers.map(b => `(${b.x + 1}, ${b.y + 1})`);
-      setPuzzleSolutionHint(hintCoords.length > 0 ? hintCoords.join(', ') : 'None (Path already aligned!)');
+      // Row, Column format: Row = y + 1, Col = x + 1
+      const hintCoords = relevantInvertedBumpers.map(b => `R${b.y + 1} C${b.x + 1}`);
+      setPuzzleSolutionHint(hintCoords.length > 0 ? hintCoords.join(', ') : 'None (Path aligned!)');
 
       const currentPath = tracePath(config.gridSize, puzzleData.scrambledBumpers, puzzleData.launcher);
       setPath(currentPath);
@@ -250,6 +253,18 @@ function App() {
       });
     }, intervalMs);
   };
+
+  // Toggle demo solution hint when pressing Shift + P
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey && (e.key === 'P' || e.key === 'p')) {
+        setShowSolutionHint((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleStartGame = (mode: 'RECALL' | 'PUZZLE' = 'RECALL') => {
     setGameMode(mode);
@@ -490,7 +505,7 @@ function App() {
             rotationTimeRemainingMs={rotationTimeRemainingMs}
           />
 
-          {gameMode === 'PUZZLE' && puzzleSolutionHint && (
+          {gameMode === 'PUZZLE' && showSolutionHint && puzzleSolutionHint && (
             <div style={{
               marginTop: '0.85rem',
               textAlign: 'center',
@@ -500,7 +515,7 @@ function App() {
               fontFamily: 'monospace',
               letterSpacing: '0.05em'
             }}>
-              Rods to flip (Col, Row): {puzzleSolutionHint}
+              Rods to flip (Row, Col): {puzzleSolutionHint}
             </div>
           )}
         </div>
