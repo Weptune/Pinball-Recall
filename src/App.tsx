@@ -36,15 +36,15 @@ function App() {
     return parseInt(localStorage.getItem('pinball_highscore_recall') || localStorage.getItem('pinball_highscore') || '0', 10);
   });
   const [recallMaxLevel, setRecallMaxLevel] = useState<number>(() => {
-    const val = parseInt(localStorage.getItem('pinball_maxlevel_recall') || localStorage.getItem('pinball_maxlevel') || '22', 10);
-    return Math.max(22, val);
+    const val = parseInt(localStorage.getItem('pinball_maxlevel_recall') || localStorage.getItem('pinball_maxlevel') || '27', 10);
+    return Math.max(27, val);
   });
   const [puzzleHighScore, setPuzzleHighScore] = useState<number>(() => {
     return parseInt(localStorage.getItem('pinball_highscore_puzzle') || '0', 10);
   });
   const [puzzleMaxLevel, setPuzzleMaxLevel] = useState<number>(() => {
-    const val = parseInt(localStorage.getItem('pinball_maxlevel_puzzle') || '17', 10);
-    return Math.max(17, val);
+    const val = parseInt(localStorage.getItem('pinball_maxlevel_puzzle') || '23', 10);
+    return Math.max(23, val);
   });
 
   // User Authentication State
@@ -108,7 +108,7 @@ function App() {
       return best;
     });
     setRecallMaxLevel((prev) => {
-      const maxLvl = Math.max(22, Math.max(prev, profile.max_level || 22));
+      const maxLvl = Math.max(27, Math.max(prev, profile.max_level || 27));
       localStorage.setItem('pinball_maxlevel_recall', maxLvl.toString());
       return maxLvl;
     });
@@ -118,7 +118,7 @@ function App() {
       return best;
     });
     setPuzzleMaxLevel((prev) => {
-      const maxLvl = Math.max(17, Math.max(prev, profile.puzzle_max_level || 17));
+      const maxLvl = Math.max(23, Math.max(prev, profile.puzzle_max_level || 23));
       localStorage.setItem('pinball_maxlevel_puzzle', maxLvl.toString());
       return maxLvl;
     });
@@ -471,57 +471,74 @@ function App() {
         </div>
       )}
 
-      {screen === 'GAME_OVER' && (
-        <div className="solid-card summary-card">
-          <h2 className="summary-title">{consecutiveMistakes > 0 ? "Session Ended" : "Session Summary"}</h2>
-          <p className="summary-subtitle">
-            {consecutiveMistakes > 0 
-              ? `Reached Round ${trialCount} before miscalculation.` 
-              : `Completed ${trialCount} rounds of Pinball Recall!`
-            }
-          </p>
+      {screen === 'GAME_OVER' && (() => {
+        const currentModeMax = gameMode === 'PUZZLE' ? puzzleMaxLevel : recallMaxLevel;
+        const isNewPb = level >= currentModeMax && level > 1;
 
-          <div className="summary-stats-grid">
-            <div className="summary-stat-box">
-              <span className="summary-label">Level Reached</span>
-              <span className="summary-val text-cyan">Lvl {level}</span>
+        return (
+          <div className="solid-card summary-card">
+            <h2 className="summary-title">{consecutiveMistakes > 0 ? "Session Ended" : "Session Summary"}</h2>
+            <p className="summary-subtitle">
+              {consecutiveMistakes > 0 
+                ? `Reached Round ${trialCount} before miscalculation.` 
+                : `Completed ${trialCount} rounds of Pinball Recall!`
+              }
+            </p>
+
+            {isNewPb && (
+              <div className="new-pb-banner" style={{
+                background: 'rgba(245, 158, 11, 0.15)',
+                border: '1px solid rgba(245, 158, 11, 0.5)',
+                borderRadius: '10px',
+                padding: '0.6rem 1rem',
+                margin: '0.5rem 0 1rem 0',
+                textAlign: 'center',
+                color: '#fef08a',
+                fontWeight: 800,
+                fontSize: '0.95rem',
+                letterSpacing: '0.05em',
+                boxShadow: '0 0 16px rgba(245, 158, 11, 0.25)'
+              }}>
+                🎉 NEW PERSONAL BEST! LEVEL {level}
+              </div>
+            )}
+
+            <div className="summary-stats-grid" style={{ gridTemplateColumns: '1fr' }}>
+              <div className="summary-stat-box" style={{ width: '100%' }}>
+                <span className="summary-label">Level Reached</span>
+                <span className="summary-val text-cyan" style={{ fontSize: '2rem' }}>Lvl {level}</span>
+              </div>
             </div>
-            <div className="summary-stat-box">
-              <span className="summary-label">Accuracy</span>
-              <span className="summary-val text-pink">
-                {Math.round((correctAnswersCount / Math.max(1, trialCount)) * 100)}%
-              </span>
+
+            {currentUser && (
+              <div style={{ fontSize: '0.75rem', color: '#22c55e', marginTop: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                <CheckCircle2 style={{ width: '14px', height: '14px' }} />
+                <span>Progress synced to @{currentUser.username}</span>
+              </div>
+            )}
+
+            <div className="summary-btn-row">
+              <button 
+                type="button" 
+                onClick={() => handleStartGame(gameMode)} 
+                className="btn-primary"
+                style={{ flex: 1 }}
+              >
+                <RotateCcw style={{ width: '16px', height: '16px' }} />
+                Play Again
+              </button>
+              <button 
+                type="button" 
+                onClick={handleQuit} 
+                className="btn-secondary"
+                style={{ flex: 1 }}
+              >
+                Main Menu
+              </button>
             </div>
           </div>
-
-          {currentUser && (
-            <div style={{ fontSize: '0.75rem', color: '#22c55e', marginTop: '0.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
-              <CheckCircle2 style={{ width: '14px', height: '14px' }} />
-              <span>Progress synced to @{currentUser.username}</span>
-            </div>
-          )}
-
-          <div className="summary-btn-row">
-            <button 
-              type="button" 
-              onClick={() => handleStartGame(gameMode)} 
-              className="btn-primary"
-              style={{ flex: 1 }}
-            >
-              <RotateCcw style={{ width: '16px', height: '16px' }} />
-              Play Again
-            </button>
-            <button 
-              type="button" 
-              onClick={handleQuit} 
-              className="btn-secondary"
-              style={{ flex: 1 }}
-            >
-              Main Menu
-            </button>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Supabase Auth Modal */}
       <AuthModal 
