@@ -109,7 +109,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           PINBALL RECALL
         </h1>
         <p className="hero-subtitle">
-          hai
+          Spatial Reasoning & Trajectory Training
         </p>
       </div>
 
@@ -158,7 +158,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   className={`mode-card-btn ${selectedMode === 'RECALL' ? 'active' : ''}`}
                 >
                   <span className="mode-card-title">Memory Recall</span>
-                  <span className="mode-card-desc">click the final landing square</span>
+                  <span className="mode-card-desc">Click the final landing square</span>
                 </button>
 
                 <button
@@ -167,17 +167,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   className={`mode-card-btn ${selectedMode === 'PUZZLE' ? 'active' : ''}`}
                 >
                   <span className="mode-card-title">Puzzle Rotation</span>
-                  <span className="mode-card-desc">flip the rods to make the ball reach the target</span>
+                  <span className="mode-card-desc">Rotate rods to guide the ball to exit</span>
                 </button>
               </div>
             </div>
 
             {/* Mode-Specific Stats Row */}
-            <div className="personal-stats-row single-stat-center">
-              <div className="personal-stat-box">
-                <span className="personal-stat-label">{selectedMode === 'PUZZLE' ? 'PUZZLE MAX LEVEL' : 'RECALL MAX LEVEL'}</span>
-                <span className="personal-stat-value text-pink" style={{ fontSize: '1.75rem' }}>Lvl {activeMaxLevel}</span>
-              </div>
+            <div className="personal-stat-card">
+              <span className="personal-stat-card-label">
+                {selectedMode === 'PUZZLE' ? 'PUZZLE ROTATION PERSONAL BEST' : 'MEMORY RECALL PERSONAL BEST'}
+              </span>
+              <span className="personal-stat-card-value">
+                Level {activeMaxLevel}
+              </span>
             </div>
 
             <div className="action-buttons-row">
