@@ -133,14 +133,50 @@ export async function signOutUser() {
 export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
   if (!supabase) return null;
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
 
-  if (error || !data) return null;
-  return data as UserProfile;
+    if (error || !data) {
+      // Fallback query without puzzle columns if schema not migrated
+      const { data: fallbackData } = await supabase
+        .from('profiles')
+        .select('id, username, high_score, max_level, total_games, total_correct, total_trials')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (!fallbackData) return null;
+      return {
+        id: fallbackData.id,
+        username: fallbackData.username || '',
+        high_score: fallbackData.high_score || 0,
+        max_level: fallbackData.max_level || 1,
+        puzzle_high_score: 0,
+        puzzle_max_level: 1,
+        total_games: fallbackData.total_games || 0,
+        total_correct: fallbackData.total_correct || 0,
+        total_trials: fallbackData.total_trials || 0,
+      };
+    }
+
+    return {
+      id: data.id,
+      username: data.username || '',
+      high_score: data.high_score || 0,
+      max_level: data.max_level || 1,
+      puzzle_high_score: data.puzzle_high_score || 0,
+      puzzle_max_level: data.puzzle_max_level || 1,
+      total_games: data.total_games || 0,
+      total_correct: data.total_correct || 0,
+      total_trials: data.total_trials || 0,
+    };
+  } catch (err) {
+    console.error("Error fetching user profile:", err);
+    return null;
+  }
 }
 
 // Save session progress to Supabase

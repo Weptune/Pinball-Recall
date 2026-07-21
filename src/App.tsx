@@ -97,6 +97,31 @@ function App() {
   const targetExitRef = useRef(targetExit);
   useEffect(() => { targetExitRef.current = targetExit; }, [targetExit]);
 
+  // Helper to sync fetched profile stats to state & localStorage
+  const syncProfileToState = (profile: any) => {
+    if (!profile) return;
+    setRecallHighScore((prev) => {
+      const best = Math.max(prev, profile.high_score || 0);
+      localStorage.setItem('pinball_highscore_recall', best.toString());
+      return best;
+    });
+    setRecallMaxLevel((prev) => {
+      const maxLvl = Math.max(prev, profile.max_level || 1);
+      localStorage.setItem('pinball_maxlevel_recall', maxLvl.toString());
+      return maxLvl;
+    });
+    setPuzzleHighScore((prev) => {
+      const best = Math.max(prev, profile.puzzle_high_score || 0);
+      localStorage.setItem('pinball_highscore_puzzle', best.toString());
+      return best;
+    });
+    setPuzzleMaxLevel((prev) => {
+      const maxLvl = Math.max(prev, profile.puzzle_max_level || 1);
+      localStorage.setItem('pinball_maxlevel_puzzle', maxLvl.toString());
+      return maxLvl;
+    });
+  };
+
   // Load user session on mount
   useEffect(() => {
     async function checkAuth() {
@@ -105,10 +130,7 @@ function App() {
         setCurrentUser({ id: user.id, username: user.username });
         const profile = await fetchUserProfile(user.id);
         if (profile) {
-          if (profile.high_score > recallHighScore) setRecallHighScore(profile.high_score);
-          if (profile.max_level > recallMaxLevel) setRecallMaxLevel(profile.max_level);
-          if ((profile.puzzle_high_score || 0) > puzzleHighScore) setPuzzleHighScore(profile.puzzle_high_score || 0);
-          if ((profile.puzzle_max_level || 1) > puzzleMaxLevel) setPuzzleMaxLevel(profile.puzzle_max_level || 1);
+          syncProfileToState(profile);
         }
       }
     }
@@ -509,8 +531,14 @@ function App() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={(username) => {
-          getCurrentUserSession().then(user => {
-            if (user) setCurrentUser({ id: user.id, username: user.username || username });
+          getCurrentUserSession().then(async (user) => {
+            if (user) {
+              setCurrentUser({ id: user.id, username: user.username || username });
+              const profile = await fetchUserProfile(user.id);
+              if (profile) {
+                syncProfileToState(profile);
+              }
+            }
           });
         }}
       />
