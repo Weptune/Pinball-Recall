@@ -546,75 +546,77 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         <div 
           className="chess-grid-container"
           style={{
+            position: 'relative',
             gridTemplateColumns: `repeat(${gridSize + 2}, 1fr)`,
             gridTemplateRows: `repeat(${gridSize + 2}, 1fr)`,
           }}
         >
           {renderBoardGrid()}
-        </div>
 
-        {/* Spark Burst on Collision */}
-        {sparkPos && (
-          <div 
-            className="collision-spark"
-            style={{
-              left: `calc(${getCellPercentage(sparkPos.x, sparkPos.y).x}% - 14px)`,
-              top: `calc(${getCellPercentage(sparkPos.x, sparkPos.y).y}% - 14px)`
-            }}
-          />
-        )}
-
-        {/* 60 FPS Trajectory Trail SVG & Pinball */}
-        {(gameState === 'SIMULATE' || gameState === 'RESULT') && trailPolyline && (
-          <svg 
-            style={{
-              position: 'absolute',
-              top: '0.6rem',
-              left: '0.6rem',
-              right: '0.6rem',
-              bottom: '0.6rem',
-              width: 'calc(100% - 1.2rem)',
-              height: 'calc(100% - 1.2rem)',
-              pointerEvents: 'none',
-              zIndex: 20
-            }}
-          >
-            <polyline
-              points={trailPolyline}
-              fill="none"
-              stroke="#22c55e"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {/* Spark Burst on Collision */}
+          {sparkPos && (
+            <div 
+              className="collision-spark"
               style={{
-                filter: 'drop-shadow(0 0 6px rgba(34, 197, 94, 0.7))'
+                position: 'absolute',
+                left: `${getCellPercentage(sparkPos.x, sparkPos.y).x}%`,
+                top: `${getCellPercentage(sparkPos.x, sparkPos.y).y}%`,
+                transform: 'translate(-50%, -50%)',
+                zIndex: 25,
+                pointerEvents: 'none'
               }}
             />
-            
-            {/* Smooth 60 FPS Ball */}
-            {ballPos && (
-              <circle
-                cx={`${ballPos.x}%`}
-                cy={`${ballPos.y}%`}
-                r="8"
-                fill="url(#smooth-ball-grad)"
-                stroke="#ffffff"
-                strokeWidth="2"
+          )}
+
+          {/* 60 FPS Trajectory Trail SVG & Pinball */}
+          {(gameState === 'SIMULATE' || gameState === 'RESULT') && trailPolyline && (
+            <svg 
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'none',
+                zIndex: 20
+              }}
+            >
+              <polyline
+                points={trailPolyline}
+                fill="none"
+                stroke="#22c55e"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 style={{
-                  filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.6))'
+                  filter: 'drop-shadow(0 0 6px rgba(34, 197, 94, 0.7))'
                 }}
               />
-            )}
+              
+              {/* Smooth 60 FPS Ball */}
+              {ballPos && (
+                <circle
+                  cx={`${ballPos.x}%`}
+                  cy={`${ballPos.y}%`}
+                  r="8"
+                  fill="url(#smooth-ball-grad)"
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                  style={{
+                    filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.6))'
+                  }}
+                />
+              )}
 
-            <defs>
-              <radialGradient id="smooth-ball-grad" cx="35%" cy="35%" r="65%">
-                <stop offset="0%" stopColor="#ffffff" />
-                <stop offset="50%" stopColor="#4ade80" />
-                <stop offset="100%" stopColor="#15803d" />
-              </radialGradient>
-            </defs>
-          </svg>
-        )}
+              <defs>
+                <radialGradient id="smooth-ball-grad" cx="35%" cy="35%" r="65%">
+                  <stop offset="0%" stopColor="#ffffff" />
+                  <stop offset="50%" stopColor="#4ade80" />
+                  <stop offset="100%" stopColor="#15803d" />
+                </radialGradient>
+              </defs>
+            </svg>
+          )}
+        </div>
       </div>
     </div>
   );
