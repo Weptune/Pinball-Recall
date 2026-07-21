@@ -233,30 +233,38 @@ function App() {
     }, intervalMs);
   };
 
-  // Secret Dev / Recording Auto-Solve for Puzzle Mode (Press Shift + S)
+  const gameModeRef = useRef(gameMode);
+  useEffect(() => { gameModeRef.current = gameMode; }, [gameMode]);
+
+  const autoSolveCurrentPuzzle = () => {
+    if (gameModeRef.current !== 'PUZZLE') return;
+
+    soundEngine.playClick();
+    const solSet = activeSolutionInvertedIdsRef.current || new Set();
+    setClickedBumperIds(new Set(solSet));
+
+    let updatedBumpers = [...bumpersRef.current];
+    solSet.forEach((bId) => {
+      updatedBumpers = rotateBumperInList(updatedBumpers, bId);
+    });
+    setBumpers(updatedBumpers);
+
+    const newPath = tracePath(gridSizeRef.current, updatedBumpers, launchPointRef.current);
+    setPath(newPath);
+    setActualExit(getExitPoint(newPath));
+  };
+
+  // Secret Dev / Recording Auto-Solve for Puzzle Mode (Press S or Shift + S)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.shiftKey && (e.key === 'S' || e.key === 's')) {
-        if (screen === 'PLAYING' && gameMode === 'PUZZLE' && activeSolutionInvertedIdsRef.current.size > 0) {
-          const solSet = activeSolutionInvertedIdsRef.current;
-          setClickedBumperIds(new Set(solSet));
-
-          let updatedBumpers = [...bumpersRef.current];
-          solSet.forEach((bId) => {
-            updatedBumpers = rotateBumperInList(updatedBumpers, bId);
-          });
-          setBumpers(updatedBumpers);
-
-          const newPath = tracePath(gridSizeRef.current, updatedBumpers, launchPointRef.current);
-          setPath(newPath);
-          setActualExit(getExitPoint(newPath));
-        }
+      if (e.key === 'S' || e.key === 's') {
+        autoSolveCurrentPuzzle();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [screen, gameMode]);
+  }, []);
 
   const handleStartGame = (mode: 'RECALL' | 'PUZZLE' = 'RECALL') => {
     setGameMode(mode);
@@ -476,6 +484,7 @@ function App() {
             onTestLaunch={handleTestTrajectory}
             canTestLaunch={gameState === 'PREDICT'}
             onQuit={handleQuit}
+            onAutoSolve={autoSolveCurrentPuzzle}
           />
 
           <GameBoard 

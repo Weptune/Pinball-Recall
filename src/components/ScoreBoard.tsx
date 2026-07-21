@@ -16,6 +16,7 @@ interface ScoreBoardProps {
   onTestLaunch?: () => void;
   canTestLaunch?: boolean;
   onQuit: () => void;
+  onAutoSolve?: () => void;
 }
 
 export const ScoreBoard: React.FC<ScoreBoardProps> = ({
@@ -28,6 +29,7 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({
   onTestLaunch,
   canTestLaunch = false,
   onQuit,
+  onAutoSolve,
 }) => {
   const [isMuted, setIsMuted] = useState<boolean>(soundEngine.isMuted());
 
@@ -58,7 +60,25 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({
         {/* Stats Cluster - ONLY LEVEL */}
         <div className="stats-cluster" style={{ justifyContent: 'center' }}>
           {/* Level */}
-          <div className="stat-pill" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0.4rem 1rem', minWidth: '76px' }}>
+          <div 
+            className="stat-pill" 
+            style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              textAlign: 'center', 
+              padding: '0.4rem 1rem', 
+              minWidth: '76px',
+              cursor: gameMode === 'PUZZLE' ? 'pointer' : 'default'
+            }}
+            onClick={() => {
+              if (gameMode === 'PUZZLE' && onAutoSolve) {
+                onAutoSolve();
+              }
+            }}
+            title={gameMode === 'PUZZLE' ? "Click to Auto-Solve Puzzle" : undefined}
+          >
             <div className="stat-pill-data" style={{ alignItems: 'center', textAlign: 'center' }}>
               <span className="stat-pill-label" style={{ textAlign: 'center' }}>Level</span>
               <span className="stat-pill-val text-cyan" style={{ textAlign: 'center', fontSize: '1rem', fontWeight: 800 }}>{level}</span>
