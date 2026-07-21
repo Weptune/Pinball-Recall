@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Volume2, VolumeX, AlertCircle, Shield } from 'lucide-react';
+import { ArrowLeft, Volume2, VolumeX, Shield } from 'lucide-react';
 import { soundEngine } from '../utils/soundEngine';
 
 interface ScoreBoardProps {
@@ -20,9 +20,6 @@ interface ScoreBoardProps {
 
 export const ScoreBoard: React.FC<ScoreBoardProps> = ({
   level,
-  streak,
-  consecutiveMistakes,
-  trialCount,
   tierTitle = "Novice",
   gridSize = 4,
   bumperCount = 2,
@@ -58,38 +55,15 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({
           <ArrowLeft style={{ width: '18px', height: '18px' }} />
         </button>
 
-        {/* Stats Cluster */}
-        <div className="stats-cluster">
+        {/* Stats Cluster - ONLY LEVEL */}
+        <div className="stats-cluster" style={{ justifyContent: 'center' }}>
           {/* Level */}
-          <div className="stat-pill">
-            <div className="stat-pill-data">
-              <span className="stat-pill-label">Level</span>
-              <span className="stat-pill-val text-cyan">{level}</span>
+          <div className="stat-pill" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0.4rem 1rem', minWidth: '76px' }}>
+            <div className="stat-pill-data" style={{ alignItems: 'center', textAlign: 'center' }}>
+              <span className="stat-pill-label" style={{ textAlign: 'center' }}>Level</span>
+              <span className="stat-pill-val text-cyan" style={{ textAlign: 'center', fontSize: '1rem', fontWeight: 800 }}>{level}</span>
             </div>
           </div>
-
-          {/* Streak */}
-          <div className="stat-pill">
-            <div className="stat-pill-data">
-              <span className="stat-pill-label">Streak</span>
-              <span className="stat-pill-val" style={{ color: streak > 0 ? '#ec4899' : '#94a3b8' }}>{streak}</span>
-            </div>
-          </div>
-
-          {/* Round Progress */}
-          <div className="stat-pill">
-            <span className="stat-pill-label" style={{ marginBottom: 0, fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8' }}>
-              ROUND {trialCount}
-            </span>
-          </div>
-
-          {/* Level Danger Warning */}
-          {consecutiveMistakes > 0 && (
-            <div className="danger-warning-tag">
-              <AlertCircle style={{ width: '14px', height: '14px' }} />
-              <span>Drop Risk</span>
-            </div>
-          )}
         </div>
 
         {/* Test Launch Button for Puzzle Mode */}
