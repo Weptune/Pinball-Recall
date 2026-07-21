@@ -275,7 +275,7 @@ export async function saveUserProgress(
 export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL'): Promise<LeaderboardEntry[]> {
   const localEntries: LeaderboardEntry[] = [];
   
-  // ONLY include logged-in users in the leaderboard (NO GUESTS!)
+  // 1. Current logged-in user local entry
   const session = await getCurrentUserSession();
   if (session && session.username) {
     const isWeptune = session.username.toLowerCase() === 'weptune';
@@ -297,22 +297,20 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
 
   if (!supabase) return localEntries;
 
-  let remoteEntries: LeaderboardEntry[] = [];
+  const map = new Map<string, LeaderboardEntry>();
 
   try {
     const targetLevelCol = mode === 'PUZZLE' ? 'puzzle_max_level' : 'max_level';
 
-    // 1. Try querying profiles table ordered by target level column descending
-    const { data, error } = await supabase
+    // 2. Fetch profiles table
+    const { data: profileData } = await supabase
       .from('profiles')
-      .select(`id, username, ${targetLevelCol}, max_level, updated_at`)
-      .order(targetLevelCol, { ascending: false })
-      .limit(25);
+      .select(`id, username, ${targetLevelCol}, max_level, updated_at`);
 
-    if (!error && data && data.length > 0) {
-      remoteEntries = data
+    if (profileData && profileData.length > 0) {
+      profileData
         .filter((profile: any) => Boolean(profile.username))
-        .map((profile: any) => {
+        .forEach((profile: any) => {
           const isWeptune = profile.username.toLowerCase() === 'weptune';
           let levelVal = 1;
 
@@ -326,7 +324,7 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
               : (profile.max_level || 1);
           }
 
-          return {
+          map.set(profile.username.toLowerCase(), {
             id: profile.id,
             user_id: profile.id,
             username: profile.username,
@@ -335,46 +333,42 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
             accuracy: 100,
             mode: mode,
             created_at: profile.updated_at || new Date().toISOString()
-          };
-        });
-    } else {
-      // 2. Fallback query if column missing
-      const { data: fallbackData } = await supabase
-        .from('profiles')
-        .select(`id, username, max_level, updated_at`)
-        .order('max_level', { ascending: false })
-        .limit(25);
-
-      if (fallbackData && fallbackData.length > 0) {
-        remoteEntries = fallbackData
-          .filter((profile: any) => Boolean(profile.username))
-          .map((profile: any) => {
-            const isWeptune = profile.username.toLowerCase() === 'weptune';
-            const levelVal = mode === 'PUZZLE'
-              ? (isWeptune ? 23 : 1)
-              : (isWeptune ? Math.max(27, profile.max_level || 27) : (profile.max_level || 1));
-
-            return {
-              id: profile.id,
-              user_id: profile.id,
-              username: profile.username,
-              score: levelVal * 100,
-              level_reached: levelVal,
-              accuracy: 100,
-              mode: mode,
-              created_at: profile.updated_at || new Date().toISOString()
-            };
           });
-      }
+        });
+    }
+
+    // 3. Query score_history to ensure mode-specific scores in cloud DB are merged
+    const { data: historyData } = await supabase
+      .from('score_history')
+      .select('username, level_reached, score, game_mode, created_at')
+      .eq('game_mode', mode);
+
+    if (historyData && historyData.length > 0) {
+      historyData.forEach((row: any) => {
+        if (!row.username) return;
+        const key = row.username.toLowerCase();
+        const existing = map.get(key);
+        const rowLvl = row.level_reached || 1;
+
+        if (!existing || existing.level_reached < rowLvl) {
+          map.set(key, {
+            id: `history-${key}`,
+            user_id: existing?.user_id || `hist-${key}`,
+            username: row.username,
+            score: rowLvl * 100,
+            level_reached: rowLvl,
+            accuracy: 100,
+            mode: mode,
+            created_at: row.created_at || new Date().toISOString()
+          });
+        }
+      });
     }
   } catch (err) {
     console.error("Error fetching global leaderboard:", err);
   }
 
-  // Merge remoteEntries with localEntries, avoiding duplicate usernames, and sort descending by level_reached
-  const map = new Map<string, LeaderboardEntry>();
-
-  remoteEntries.forEach((entry) => map.set(entry.username.toLowerCase(), entry));
+  // 4. Merge localEntries for current device
   localEntries.forEach((entry) => {
     const key = entry.username.toLowerCase();
     if (!map.has(key) || (map.get(key)?.level_reached || 0) < entry.level_reached) {
