@@ -36,13 +36,15 @@ function App() {
     return parseInt(localStorage.getItem('pinball_highscore_recall') || localStorage.getItem('pinball_highscore') || '0', 10);
   });
   const [recallMaxLevel, setRecallMaxLevel] = useState<number>(() => {
-    return parseInt(localStorage.getItem('pinball_maxlevel_recall') || localStorage.getItem('pinball_maxlevel') || '1', 10);
+    const val = parseInt(localStorage.getItem('pinball_maxlevel_recall') || localStorage.getItem('pinball_maxlevel') || '22', 10);
+    return Math.max(22, val);
   });
   const [puzzleHighScore, setPuzzleHighScore] = useState<number>(() => {
     return parseInt(localStorage.getItem('pinball_highscore_puzzle') || '0', 10);
   });
   const [puzzleMaxLevel, setPuzzleMaxLevel] = useState<number>(() => {
-    return parseInt(localStorage.getItem('pinball_maxlevel_puzzle') || '1', 10);
+    const val = parseInt(localStorage.getItem('pinball_maxlevel_puzzle') || '17', 10);
+    return Math.max(17, val);
   });
 
   // User Authentication State
@@ -106,7 +108,7 @@ function App() {
       return best;
     });
     setRecallMaxLevel((prev) => {
-      const maxLvl = Math.max(prev, profile.max_level || 1);
+      const maxLvl = Math.max(22, Math.max(prev, profile.max_level || 22));
       localStorage.setItem('pinball_maxlevel_recall', maxLvl.toString());
       return maxLvl;
     });
@@ -116,7 +118,7 @@ function App() {
       return best;
     });
     setPuzzleMaxLevel((prev) => {
-      const maxLvl = Math.max(prev, profile.puzzle_max_level || 1);
+      const maxLvl = Math.max(17, Math.max(prev, profile.puzzle_max_level || 17));
       localStorage.setItem('pinball_maxlevel_puzzle', maxLvl.toString());
       return maxLvl;
     });

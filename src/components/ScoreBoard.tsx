@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Volume2, VolumeX, Trophy, Compass, Flame, AlertCircle, Shield } from 'lucide-react';
+import { ArrowLeft, Volume2, VolumeX, AlertCircle, Shield } from 'lucide-react';
 import { soundEngine } from '../utils/soundEngine';
 
 interface ScoreBoardProps {
@@ -63,16 +63,14 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({
         <div className="stats-cluster">
           {/* Score */}
           <div className="stat-pill">
-            <Trophy style={{ width: '16px', height: '16px', color: '#f59e0b' }} />
             <div className="stat-pill-data">
               <span className="stat-pill-label">Score</span>
-              <span className="stat-pill-val">{score}</span>
+              <span className="stat-pill-val" style={{ color: '#f59e0b' }}>{score}</span>
             </div>
           </div>
 
           {/* Level */}
           <div className="stat-pill">
-            <Compass style={{ width: '16px', height: '16px', color: '#38bdf8' }} />
             <div className="stat-pill-data">
               <span className="stat-pill-label">Level</span>
               <span className="stat-pill-val text-cyan">{level}</span>
@@ -81,17 +79,16 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({
 
           {/* Streak */}
           <div className="stat-pill">
-            <Flame style={{ width: '16px', height: '16px', color: streak > 0 ? '#ec4899' : '#64748b' }} />
             <div className="stat-pill-data">
               <span className="stat-pill-label">Streak</span>
-              <span className="stat-pill-val">{streak}</span>
+              <span className="stat-pill-val" style={{ color: streak > 0 ? '#ec4899' : '#94a3b8' }}>{streak}</span>
             </div>
           </div>
 
           {/* Round Progress */}
           <div className="stat-pill">
             <span className="stat-pill-label" style={{ marginBottom: 0, fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8' }}>
-              Round {trialCount}
+              ROUND {trialCount}
             </span>
           </div>
 

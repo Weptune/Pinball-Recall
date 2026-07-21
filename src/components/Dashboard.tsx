@@ -20,9 +20,7 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
   onStartGame, 
-  recallHighScore, 
   recallMaxLevel,
-  puzzleHighScore,
   puzzleMaxLevel,
   currentUserUsername,
   onOpenAuthModal,
@@ -71,7 +69,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setShowRules(true);
   };
 
-  const activeHighScore = selectedMode === 'PUZZLE' ? puzzleHighScore : recallHighScore;
   const activeMaxLevel = selectedMode === 'PUZZLE' ? puzzleMaxLevel : recallMaxLevel;
 
   return (
@@ -173,15 +170,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
 
             {/* Mode-Specific Stats Row */}
-            <div className="personal-stats-row">
+            <div className="personal-stats-row single-stat-center">
               <div className="personal-stat-box">
-                <span className="personal-stat-label">{selectedMode === 'PUZZLE' ? 'Puzzle' : 'Recall'} Best</span>
-                <span className="personal-stat-value">{activeHighScore}</span>
-              </div>
-              <div className="personal-stat-divider" />
-              <div className="personal-stat-box">
-                <span className="personal-stat-label">Max Level</span>
-                <span className="personal-stat-value text-pink">Lvl {activeMaxLevel}</span>
+                <span className="personal-stat-label">{selectedMode === 'PUZZLE' ? 'PUZZLE MAX LEVEL' : 'RECALL MAX LEVEL'}</span>
+                <span className="personal-stat-value text-pink" style={{ fontSize: '1.75rem' }}>Lvl {activeMaxLevel}</span>
               </div>
             </div>
 
