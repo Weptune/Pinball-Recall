@@ -254,10 +254,10 @@ function App() {
     setActualExit(getExitPoint(newPath));
   };
 
-  // Secret Dev / Recording Auto-Solve for Puzzle Mode (Press S or Shift + S)
+  // Secret Dev / Recording Auto-Solve for Puzzle Mode (Press P)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'S' || e.key === 's') {
+      if (e.key === 'P' || e.key === 'p') {
         autoSolveCurrentPuzzle();
       }
     };
