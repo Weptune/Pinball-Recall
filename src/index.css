@@ -159,20 +159,28 @@ body {
 
 .app-main-viewport {
   width: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: radial-gradient(circle at 50% 35%, #161c2d 0%, #090c14 75%);
+  padding: 2rem 1rem;
+  box-sizing: border-box;
 }
 
 .main-dashboard-card {
   width: 100%;
-  max-width: 540px;
-  padding: 2.75rem 2.25rem;
+  max-width: 520px;
+  padding: 2.25rem 2rem;
+  background: linear-gradient(160deg, #161a29 0%, #101320 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.05);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 1.6rem;
   text-align: center;
 }
 
@@ -1197,30 +1205,48 @@ body {
   line-height: 1.4;
 }
 
-.personal-stat-card {
+.stats-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
   width: 100%;
-  background: #0f1320;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 0.85rem 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   box-sizing: border-box;
 }
 
-.personal-stat-card-label {
-  font-size: 0.725rem;
-  font-weight: 800;
-  color: #94a3b8;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+.stat-summary-pill {
+  background: #090c14;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  transition: all 0.2s ease;
 }
 
-.personal-stat-card-value {
-  font-size: 1.1rem;
-  font-weight: 800;
+.stat-summary-pill.selected {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.06);
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.1);
+}
+
+.stat-summary-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stat-summary-pill.selected .stat-summary-label {
   color: #22c55e;
+}
+
+.stat-summary-val {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
   font-family: var(--font-display);
 }
 

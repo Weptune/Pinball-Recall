@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, BookOpen, Award, Users, HelpCircle, User, LogOut, RefreshCw } from 'lucide-react';
+import { Play, BookOpen, Award, Users, HelpCircle, User, LogOut, RefreshCw, RotateCw } from 'lucide-react';
 import { soundEngine } from '../utils/soundEngine';
 import { 
   fetchGlobalLeaderboard, 
@@ -68,8 +68,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     soundEngine.playClick();
     setShowRules(true);
   };
-
-  const activeMaxLevel = selectedMode === 'PUZZLE' ? puzzleMaxLevel : recallMaxLevel;
 
   return (
     <div className="solid-card main-dashboard-card">
@@ -157,7 +155,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   onClick={() => { soundEngine.playClick(); setSelectedMode('RECALL'); }}
                   className={`mode-card-btn ${selectedMode === 'RECALL' ? 'active' : ''}`}
                 >
-                  <span className="mode-card-title">Memory Recall</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                    <Play style={{ width: '15px', height: '15px', color: selectedMode === 'RECALL' ? '#22c55e' : '#94a3b8' }} />
+                    <span className="mode-card-title">Memory Recall</span>
+                  </div>
                   <span className="mode-card-desc">Click the final landing square</span>
                 </button>
 
@@ -166,20 +167,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   onClick={() => { soundEngine.playClick(); setSelectedMode('PUZZLE'); }}
                   className={`mode-card-btn ${selectedMode === 'PUZZLE' ? 'active' : ''}`}
                 >
-                  <span className="mode-card-title">Puzzle Rotation</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                    <RotateCw style={{ width: '15px', height: '15px', color: selectedMode === 'PUZZLE' ? '#22c55e' : '#94a3b8' }} />
+                    <span className="mode-card-title">Puzzle Rotation</span>
+                  </div>
                   <span className="mode-card-desc">Rotate rods to guide the ball to exit</span>
                 </button>
               </div>
             </div>
 
-            {/* Mode-Specific Stats Row */}
-            <div className="personal-stat-card">
-              <span className="personal-stat-card-label">
-                {selectedMode === 'PUZZLE' ? 'PUZZLE ROTATION PERSONAL BEST' : 'MEMORY RECALL PERSONAL BEST'}
-              </span>
-              <span className="personal-stat-card-value">
-                Level {activeMaxLevel}
-              </span>
+            {/* Mode Stats Overview Grid */}
+            <div className="stats-overview-grid">
+              <div className={`stat-summary-pill ${selectedMode === 'RECALL' ? 'selected' : ''}`}>
+                <span className="stat-summary-label">Memory Recall</span>
+                <span className="stat-summary-val">Lvl {recallMaxLevel}</span>
+              </div>
+              <div className={`stat-summary-pill ${selectedMode === 'PUZZLE' ? 'selected' : ''}`}>
+                <span className="stat-summary-label">Puzzle Rotation</span>
+                <span className="stat-summary-val">Lvl {puzzleMaxLevel}</span>
+              </div>
             </div>
 
             <div className="action-buttons-row">
