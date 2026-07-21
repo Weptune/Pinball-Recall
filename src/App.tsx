@@ -321,14 +321,18 @@ function App() {
     triggerPuzzleTrajectoryTest();
   };
 
-  const handleSelectExit = (exit: Position) => {
+  const handleSelectExit = (exit: Position | null) => {
     setSelectedExit(exit);
+  };
+
+  const handleConfirmPrediction = () => {
+    if (!selectedExit) return;
     setGameState('SIMULATE');
 
     const simulationDuration = Math.max(900, Math.min(2400, path.length * 220)) + 400;
     setTimeout(() => {
       setGameState('RESULT');
-      evaluateRoundResult(exit);
+      evaluateRoundResult(selectedExit);
     }, simulationDuration);
   };
 
@@ -502,6 +506,7 @@ function App() {
             onRotateBumper={handleRotateBumper}
             canRotate={gameState === 'PREDICT'}
             rotationTimeRemainingMs={rotationTimeRemainingMs}
+            onConfirmPrediction={handleConfirmPrediction}
           />
 
           {gameMode === 'PUZZLE' && showSolutionHint && puzzleSolutionHint && (
