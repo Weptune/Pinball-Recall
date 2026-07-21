@@ -465,40 +465,40 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             gameState === 'MEMORIZE' ? (
               <>
                 <Eye style={{ width: '16px', height: '16px', color: '#f59e0b' }} />
-                STUDY SCRAMBLED RODS & LAUNCHER (RODS LOCKED)
+                STUDY BOARD
               </>
             ) : gameState === 'PREDICT' ? (
               <>
                 <Target style={{ width: '16px', height: '16px', color: '#22c55e' }} />
-                RODS HIDDEN! CLICK MEMORIZED RODS TO ROTATE & TEST LAUNCH
+                ROTATE RODS TO CONNECT PATH
               </>
             ) : gameState === 'SIMULATE' ? (
-              "TESTING TRAJECTORY..."
+              "TESTING PATH..."
             ) : (
               selectedExit?.x === actualExit?.x && selectedExit?.y === actualExit?.y ? (
-                <span style={{ color: '#22c55e', fontWeight: 800 }}>PATH CONNECTED! ADVANCING...</span>
+                <span style={{ color: '#22c55e', fontWeight: 800 }}>PATH CONNECTED!</span>
               ) : (
-                <span style={{ color: '#ef4444', fontWeight: 800 }}>MISCALCULATED! LEVEL DROPPED</span>
+                <span style={{ color: '#ef4444', fontWeight: 800 }}>MISCALCULATED!</span>
               )
             )
           ) : (
             gameState === 'MEMORIZE' ? (
               <>
                 <Eye style={{ width: '16px', height: '16px', color: '#f59e0b' }} />
-                MEMORIZE MIRROR POSITIONS
+                MEMORIZE BOARD
               </>
             ) : gameState === 'PREDICT' ? (
               <>
                 <Target style={{ width: '16px', height: '16px', color: '#22c55e' }} />
-                SELECT EXIT TARGET
+                CLICK EXIT TARGET
               </>
             ) : gameState === 'SIMULATE' ? (
-              "TRACING TRAJECTORY..."
+              "TRACING PATH..."
             ) : (
               selectedExit?.x === actualExit?.x && selectedExit?.y === actualExit?.y ? (
-                <span style={{ color: '#22c55e', fontWeight: 800 }}>PERFECT TRAJECTORY! ADVANCING...</span>
+                <span style={{ color: '#22c55e', fontWeight: 800 }}>PERFECT!</span>
               ) : (
-                <span style={{ color: '#ef4444', fontWeight: 800 }}>MISCALCULATED! LEVEL DROPPED</span>
+                <span style={{ color: '#ef4444', fontWeight: 800 }}>MISCALCULATED!</span>
               )
             )
           )}
