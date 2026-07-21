@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, BookOpen, Award, Users, HelpCircle, User, LogOut, RefreshCw, RotateCw } from 'lucide-react';
+import { Play, BookOpen, Award, Users, HelpCircle, User, LogOut, RefreshCw } from 'lucide-react';
 import { soundEngine } from '../utils/soundEngine';
 import { 
   fetchGlobalLeaderboard, 
@@ -155,10 +155,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   onClick={() => { soundEngine.playClick(); setSelectedMode('RECALL'); }}
                   className={`mode-card-btn ${selectedMode === 'RECALL' ? 'active' : ''}`}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                    <Play style={{ width: '15px', height: '15px', color: selectedMode === 'RECALL' ? '#22c55e' : '#94a3b8' }} />
-                    <span className="mode-card-title">Memory Recall</span>
-                  </div>
+                  <span className="mode-card-title">Memory Recall</span>
                   <span className="mode-card-desc">Click the final landing square</span>
                 </button>
 
@@ -167,10 +164,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   onClick={() => { soundEngine.playClick(); setSelectedMode('PUZZLE'); }}
                   className={`mode-card-btn ${selectedMode === 'PUZZLE' ? 'active' : ''}`}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                    <RotateCw style={{ width: '15px', height: '15px', color: selectedMode === 'PUZZLE' ? '#22c55e' : '#94a3b8' }} />
-                    <span className="mode-card-title">Puzzle Rotation</span>
-                  </div>
+                  <span className="mode-card-title">Puzzle Rotation</span>
                   <span className="mode-card-desc">Rotate rods to guide the ball to exit</span>
                 </button>
               </div>
