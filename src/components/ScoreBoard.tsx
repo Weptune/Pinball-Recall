@@ -16,7 +16,6 @@ interface ScoreBoardProps {
   onTestLaunch?: () => void;
   canTestLaunch?: boolean;
   onQuit: () => void;
-  onAutoSolve?: () => void;
 }
 
 export const ScoreBoard: React.FC<ScoreBoardProps> = ({
@@ -29,7 +28,6 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({
   onTestLaunch,
   canTestLaunch = false,
   onQuit,
-  onAutoSolve,
 }) => {
   const [isMuted, setIsMuted] = useState<boolean>(soundEngine.isMuted());
 
@@ -69,15 +67,8 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({
               justifyContent: 'center', 
               textAlign: 'center', 
               padding: '0.4rem 1rem', 
-              minWidth: '76px',
-              cursor: gameMode === 'PUZZLE' ? 'pointer' : 'default'
+              minWidth: '76px'
             }}
-            onClick={() => {
-              if (gameMode === 'PUZZLE' && onAutoSolve) {
-                onAutoSolve();
-              }
-            }}
-            title={gameMode === 'PUZZLE' ? "Click to Auto-Solve Puzzle" : undefined}
           >
             <div className="stat-pill-data" style={{ alignItems: 'center', textAlign: 'center' }}>
               <span className="stat-pill-label" style={{ textAlign: 'center' }}>Level</span>

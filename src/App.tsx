@@ -179,8 +179,6 @@ function App() {
     }
   }, [gameMode, gameState]);
 
-  const activeSolutionInvertedIdsRef = useRef<Set<string>>(new Set());
-
   // Set up a new round
   const startNewRound = (nextLevel: number, mode: 'RECALL' | 'PUZZLE' = gameMode) => {
     const config = getLevelConfig(nextLevel);
@@ -198,7 +196,6 @@ function App() {
       setBumpers(puzzleData.scrambledBumpers);
       setLaunchPoint(puzzleData.launcher);
       setTargetExit(puzzleData.targetExit);
-      activeSolutionInvertedIdsRef.current = puzzleData.invertedBumperIds;
       
       const currentPath = tracePath(config.gridSize, puzzleData.scrambledBumpers, puzzleData.launcher);
       setPath(currentPath);
@@ -232,39 +229,6 @@ function App() {
       });
     }, intervalMs);
   };
-
-  const gameModeRef = useRef(gameMode);
-  useEffect(() => { gameModeRef.current = gameMode; }, [gameMode]);
-
-  const autoSolveCurrentPuzzle = () => {
-    if (gameModeRef.current !== 'PUZZLE') return;
-
-    soundEngine.playClick();
-    const solSet = activeSolutionInvertedIdsRef.current || new Set();
-    setClickedBumperIds(new Set(solSet));
-
-    let updatedBumpers = [...bumpersRef.current];
-    solSet.forEach((bId) => {
-      updatedBumpers = rotateBumperInList(updatedBumpers, bId);
-    });
-    setBumpers(updatedBumpers);
-
-    const newPath = tracePath(gridSizeRef.current, updatedBumpers, launchPointRef.current);
-    setPath(newPath);
-    setActualExit(getExitPoint(newPath));
-  };
-
-  // Secret Dev / Recording Auto-Solve for Puzzle Mode (Press P)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'P' || e.key === 'p') {
-        autoSolveCurrentPuzzle();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   const handleStartGame = (mode: 'RECALL' | 'PUZZLE' = 'RECALL') => {
     setGameMode(mode);
@@ -484,7 +448,6 @@ function App() {
             onTestLaunch={handleTestTrajectory}
             canTestLaunch={gameState === 'PREDICT'}
             onQuit={handleQuit}
-            onAutoSolve={autoSolveCurrentPuzzle}
           />
 
           <GameBoard 
