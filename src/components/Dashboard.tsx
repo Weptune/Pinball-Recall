@@ -271,9 +271,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             {entry.username || entry.user_email || 'Player'}
                           </span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Lvl {entry.level_reached}</span>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#22c55e' }}>{entry.score}</span>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#22c55e', fontFamily: 'var(--font-display)' }}>
+                            Lvl {entry.level_reached}
+                          </span>
                         </div>
                       </div>
                     ))}

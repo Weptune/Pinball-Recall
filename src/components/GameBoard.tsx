@@ -529,9 +529,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           <svg 
             style={{
               position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
+              top: '0.6rem',
+              left: '0.6rem',
+              right: '0.6rem',
+              bottom: '0.6rem',
+              width: 'calc(100% - 1.2rem)',
+              height: 'calc(100% - 1.2rem)',
               pointerEvents: 'none',
               zIndex: 20
             }}

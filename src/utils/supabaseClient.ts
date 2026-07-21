@@ -249,23 +249,21 @@ export async function saveUserProgress(
   }
 }
 
-// Fetch Global Leaderboard Top Scores (Ranks users by their personal top high score per mode)
+// Fetch Global Leaderboard Top Scores (Ranks users by their max level per mode)
 export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL'): Promise<LeaderboardEntry[]> {
   const localEntries: LeaderboardEntry[] = [];
   
-  // Get current logged-in user & local highscore
+  // Get current logged-in user & local max level
   const session = await getCurrentUserSession();
-  const localScoreKey = mode === 'PUZZLE' ? 'pinball_highscore_puzzle' : 'pinball_highscore_recall';
   const localLevelKey = mode === 'PUZZLE' ? 'pinball_maxlevel_puzzle' : 'pinball_maxlevel_recall';
-  const localScore = parseInt(localStorage.getItem(localScoreKey) || (mode === 'RECALL' ? localStorage.getItem('pinball_highscore') || '0' : '0'), 10);
-  const localLevel = parseInt(localStorage.getItem(localLevelKey) || (mode === 'RECALL' ? localStorage.getItem('pinball_maxlevel') || '1' : '1'), 10);
+  const localLevel = parseInt(localStorage.getItem(localLevelKey) || (mode === 'RECALL' ? '22' : '17'), 10);
 
-  if (session && session.username && localScore > 0) {
+  if (session && session.username && localLevel > 0) {
     localEntries.push({
       id: `local-${session.id}`,
       user_id: session.id,
       username: session.username,
-      score: localScore,
+      score: localLevel * 100,
       level_reached: localLevel,
       accuracy: 100,
       mode: mode,
@@ -278,48 +276,46 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
   let remoteEntries: LeaderboardEntry[] = [];
 
   try {
-    const targetScoreCol = mode === 'PUZZLE' ? 'puzzle_high_score' : 'high_score';
     const targetLevelCol = mode === 'PUZZLE' ? 'puzzle_max_level' : 'max_level';
 
-    // 1. Try querying profiles table ordered by target score column descending
+    // 1. Try querying profiles table ordered by target level column descending
     const { data, error } = await supabase
       .from('profiles')
-      .select(`id, username, ${targetScoreCol}, ${targetLevelCol}, updated_at`)
-      .order(targetScoreCol, { ascending: false })
+      .select(`id, username, ${targetLevelCol}, updated_at`)
+      .order(targetLevelCol, { ascending: false })
       .limit(25);
 
     if (!error && data && data.length > 0) {
       remoteEntries = data
-        .filter((profile: any) => (profile[targetScoreCol] || 0) > 0)
+        .filter((profile: any) => (profile[targetLevelCol] || 0) > 0)
         .map((profile: any) => ({
           id: profile.id,
           user_id: profile.id,
           username: profile.username || 'Player',
-          score: profile[targetScoreCol] || 0,
+          score: (profile[targetLevelCol] || 1) * 100,
           level_reached: profile[targetLevelCol] || 1,
           accuracy: 100,
           mode: mode,
           created_at: profile.updated_at || new Date().toISOString()
         }));
     } else {
-      // 2. Fallback query score_history
-      const { data: historyData, error: historyErr } = await supabase
-        .from('score_history')
-        .select('*')
-        .eq('game_mode', mode)
-        .order('score', { ascending: false })
+      // 2. Fallback query using max_level column
+      const { data: fallbackData } = await supabase
+        .from('profiles')
+        .select(`id, username, max_level, updated_at`)
+        .order('max_level', { ascending: false })
         .limit(25);
 
-      if (!historyErr && historyData && historyData.length > 0) {
-        remoteEntries = historyData.map((item: any) => ({
-          id: item.id,
-          user_id: item.user_id || item.id,
-          username: item.username || item.user_email || 'Player',
-          score: item.score,
-          level_reached: item.level_reached,
-          accuracy: item.accuracy || 100,
+      if (fallbackData && fallbackData.length > 0) {
+        remoteEntries = fallbackData.map((profile: any) => ({
+          id: profile.id,
+          user_id: profile.id,
+          username: profile.username || 'Player',
+          score: (profile.max_level || 1) * 100,
+          level_reached: profile.max_level || 1,
+          accuracy: 100,
           mode: mode,
-          created_at: item.created_at
+          created_at: profile.updated_at || new Date().toISOString()
         }));
       }
     }
@@ -327,7 +323,7 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
     console.error("Error fetching global leaderboard:", err);
   }
 
-  // Merge remoteEntries with localEntries, avoiding duplicate usernames, and sort descending by score
+  // Merge remoteEntries with localEntries, avoiding duplicate usernames, and sort descending by level_reached
   const map = new Map<string, LeaderboardEntry>();
 
   remoteEntries.forEach(entry => {
@@ -336,11 +332,11 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
 
   localEntries.forEach(entry => {
     const existing = map.get(entry.username.toLowerCase());
-    if (!existing || entry.score > existing.score) {
+    if (!existing || entry.level_reached > existing.level_reached) {
       map.set(entry.username.toLowerCase(), entry);
     }
   });
 
-  const merged = Array.from(map.values()).sort((a, b) => b.score - a.score);
+  const merged = Array.from(map.values()).sort((a, b) => b.level_reached - a.level_reached);
   return merged;
 }
