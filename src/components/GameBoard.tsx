@@ -15,7 +15,6 @@ interface GameBoardProps {
   path: PathStep[];
   memorizeTimeRemainingMs: number;
   totalMemorizeTimeMs: number;
-  onConfirmPrediction?: () => void;
   // Puzzle Mode Props
   gameMode?: 'RECALL' | 'PUZZLE';
   clickedBumperIds?: Set<string>;
@@ -45,7 +44,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   path,
   memorizeTimeRemainingMs,
   totalMemorizeTimeMs,
-  onConfirmPrediction,
   gameMode = 'RECALL',
   clickedBumperIds = new Set(),
   targetExit = null,
@@ -250,11 +248,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   const handleSelectExitClick = (option: ExitOption) => {
     soundEngine.playClick();
-    if (selectedExit?.x === option.x && selectedExit?.y === option.y) {
-      onSelectExit(null);
-    } else {
-      onSelectExit({ x: option.x, y: option.y });
-    }
+    onSelectExit({ x: option.x, y: option.y });
   };
 
   const renderExitArrow = (option: ExitOption) => {
@@ -518,23 +512,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           <span className="chess-countdown-text" style={{ color: '#f59e0b' }}>
             {(rotationTimeRemainingMs / 1000).toFixed(1)}s
           </span>
-        )}
-        {gameMode === 'RECALL' && gameState === 'PREDICT' && selectedExit && (
-          <button
-            type="button"
-            onClick={() => { soundEngine.playClick(); onConfirmPrediction?.(); }}
-            className="btn-primary"
-            style={{ 
-              padding: '0.35rem 0.85rem', 
-              fontSize: '0.78rem', 
-              whiteSpace: 'nowrap',
-              background: '#22c55e',
-              border: '1px solid #4ade80',
-              boxShadow: '0 0 12px rgba(34, 197, 94, 0.4)'
-            }}
-          >
-            Confirm Prediction
-          </button>
         )}
       </div>
 

@@ -1148,29 +1148,50 @@ body {
   z-index: 4;
 }
 
+.tab-label-short {
+  display: none;
+}
+
 /* ==========================================================================
    MOBILE RESPONSIVE UI OPTIMIZATIONS
    ========================================================================== */
 @media (max-width: 520px) {
+  .tab-label-full {
+    display: none;
+  }
+
+  .tab-label-short {
+    display: inline;
+  }
+
   .hero-title {
     font-size: 2.15rem !important;
     letter-spacing: 0.03em !important;
   }
 
   .tab-bar-container {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
     padding: 0.25rem;
     gap: 0.2rem;
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
   }
 
   .tab-btn-item {
     font-size: 0.725rem;
-    padding: 0.5rem 0.3rem;
-    gap: 0.2rem;
+    padding: 0.5rem 0.15rem;
+    gap: 0.25rem;
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
   }
 
   .tab-btn-item svg {
     width: 14px !important;
     height: 14px !important;
+    flex-shrink: 0;
   }
 
   .difficulty-hud-bar {

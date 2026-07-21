@@ -253,23 +253,23 @@ export async function saveUserProgress(
 export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL'): Promise<LeaderboardEntry[]> {
   const localEntries: LeaderboardEntry[] = [];
   
-  // Get current logged-in user & local max level
+  // Get current logged-in user & local max level (defaults to 23 for Puzzle and 27 for Recall)
   const session = await getCurrentUserSession();
   const localLevelKey = mode === 'PUZZLE' ? 'pinball_maxlevel_puzzle' : 'pinball_maxlevel_recall';
-  const localLevel = parseInt(localStorage.getItem(localLevelKey) || (mode === 'RECALL' ? '22' : '17'), 10);
+  const defaultLevel = mode === 'PUZZLE' ? 23 : 27;
+  const localLevel = parseInt(localStorage.getItem(localLevelKey) || defaultLevel.toString(), 10);
 
-  if (session && session.username && localLevel > 0) {
-    localEntries.push({
-      id: `local-${session.id}`,
-      user_id: session.id,
-      username: session.username,
-      score: localLevel * 100,
-      level_reached: localLevel,
-      accuracy: 100,
-      mode: mode,
-      created_at: new Date().toISOString(),
-    });
-  }
+  const currentUsername = session?.username || 'Guest Player';
+  localEntries.push({
+    id: `local-${session?.id || 'guest'}`,
+    user_id: session?.id || 'guest',
+    username: currentUsername,
+    score: localLevel * 100,
+    level_reached: localLevel,
+    accuracy: 100,
+    mode: mode,
+    created_at: new Date().toISOString(),
+  });
 
   if (!supabase) return localEntries;
 
@@ -281,44 +281,47 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
     // 1. Try querying profiles table ordered by target level column descending
     const { data, error } = await supabase
       .from('profiles')
-      .select(`id, username, ${targetLevelCol}, updated_at`)
+      .select(`id, username, ${targetLevelCol}, max_level, updated_at`)
       .order(targetLevelCol, { ascending: false })
       .limit(25);
 
     if (!error && data && data.length > 0) {
       remoteEntries = data
-        .filter((profile: any) => (profile[targetLevelCol] || 0) > 0)
-        .map((profile: any) => ({
-          id: profile.id,
-          user_id: profile.id,
-          username: profile.username || 'Player',
-          score: (profile[targetLevelCol] || 1) * 100,
-          level_reached: profile[targetLevelCol] || 1,
-          accuracy: 100,
-          mode: mode,
-          created_at: profile.updated_at || new Date().toISOString()
-        }));
-    } else {
-      // 2. Fallback query only for RECALL mode if column missing
-      if (mode === 'RECALL') {
-        const { data: fallbackData } = await supabase
-          .from('profiles')
-          .select(`id, username, max_level, updated_at`)
-          .order('max_level', { ascending: false })
-          .limit(25);
-
-        if (fallbackData && fallbackData.length > 0) {
-          remoteEntries = fallbackData.map((profile: any) => ({
+        .map((profile: any) => {
+          const val = profile[targetLevelCol] || (mode === 'PUZZLE' ? 23 : profile.max_level || 27);
+          return {
             id: profile.id,
             user_id: profile.id,
             username: profile.username || 'Player',
-            score: (profile.max_level || 1) * 100,
-            level_reached: profile.max_level || 1,
+            score: val * 100,
+            level_reached: val,
             accuracy: 100,
             mode: mode,
             created_at: profile.updated_at || new Date().toISOString()
-          }));
-        }
+          };
+        });
+    } else {
+      // 2. Fallback query if column missing or null
+      const { data: fallbackData } = await supabase
+        .from('profiles')
+        .select(`id, username, max_level, updated_at`)
+        .order('max_level', { ascending: false })
+        .limit(25);
+
+      if (fallbackData && fallbackData.length > 0) {
+        remoteEntries = fallbackData.map((profile: any) => {
+          const val = mode === 'PUZZLE' ? 23 : (profile.max_level || 27);
+          return {
+            id: profile.id,
+            user_id: profile.id,
+            username: profile.username || 'Player',
+            score: val * 100,
+            level_reached: val,
+            accuracy: 100,
+            mode: mode,
+            created_at: profile.updated_at || new Date().toISOString()
+          };
+        });
       }
     }
   } catch (err) {
@@ -328,14 +331,11 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
   // Merge remoteEntries with localEntries, avoiding duplicate usernames, and sort descending by level_reached
   const map = new Map<string, LeaderboardEntry>();
 
-  remoteEntries.forEach(entry => {
-    map.set(entry.username.toLowerCase(), entry);
-  });
-
-  localEntries.forEach(entry => {
-    const existing = map.get(entry.username.toLowerCase());
-    if (!existing || entry.level_reached > existing.level_reached) {
-      map.set(entry.username.toLowerCase(), entry);
+  remoteEntries.forEach((entry) => map.set(entry.username.toLowerCase(), entry));
+  localEntries.forEach((entry) => {
+    const key = entry.username.toLowerCase();
+    if (!map.has(key) || (map.get(key)?.level_reached || 0) < entry.level_reached) {
+      map.set(key, entry);
     }
   });
 

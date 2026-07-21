@@ -328,17 +328,14 @@ function App() {
   };
 
   const handleSelectExit = (exit: Position | null) => {
+    if (!exit) return;
     setSelectedExit(exit);
-  };
-
-  const handleConfirmPrediction = () => {
-    if (!selectedExit) return;
     setGameState('SIMULATE');
 
     const simulationDuration = Math.max(900, Math.min(2400, path.length * 220)) + 400;
     setTimeout(() => {
       setGameState('RESULT');
-      evaluateRoundResult(selectedExit);
+      evaluateRoundResult(exit);
     }, simulationDuration);
   };
 
@@ -512,7 +509,6 @@ function App() {
             onRotateBumper={handleRotateBumper}
             canRotate={gameState === 'PREDICT'}
             rotationTimeRemainingMs={rotationTimeRemainingMs}
-            onConfirmPrediction={handleConfirmPrediction}
           />
 
           {gameMode === 'PUZZLE' && showSolutionHint && puzzleSolutionHint && (

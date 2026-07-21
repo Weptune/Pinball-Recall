@@ -120,24 +120,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
           onClick={() => handleTabClick('solo')}
           className={`tab-btn-item ${activeTab === 'solo' ? 'active' : ''}`}
         >
-          <Play style={{ width: '16px', height: '16px' }} />
-          Solo Training
+          <Play style={{ width: '15px', height: '15px', flexShrink: 0 }} />
+          <span className="tab-label-full">Solo Training</span>
+          <span className="tab-label-short">Solo</span>
         </button>
         <button
           type="button"
           onClick={() => handleTabClick('multiplayer')}
           className={`tab-btn-item ${activeTab === 'multiplayer' ? 'active' : ''}`}
         >
-          <Users style={{ width: '16px', height: '16px' }} />
-          Multiplayer
+          <Users style={{ width: '15px', height: '15px', flexShrink: 0 }} />
+          <span className="tab-label-full">Multiplayer</span>
+          <span className="tab-label-short">Multi</span>
         </button>
         <button
           type="button"
           onClick={() => handleTabClick('leaderboards')}
           className={`tab-btn-item ${activeTab === 'leaderboards' ? 'active' : ''}`}
         >
-          <Award style={{ width: '16px', height: '16px' }} />
-          Leaderboard
+          <Award style={{ width: '15px', height: '15px', flexShrink: 0 }} />
+          <span className="tab-label-full">Leaderboards</span>
+          <span className="tab-label-short">Ranks</span>
         </button>
       </div>
 
