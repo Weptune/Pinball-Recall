@@ -32,20 +32,11 @@ type GameRoundState = 'MEMORIZE' | 'PREDICT' | 'SIMULATE' | 'RESULT';
 function App() {
   // Mode-specific high scores & max levels
   const [screen, setScreen] = useState<ScreenState>('DASHBOARD');
-  const [recallHighScore, setRecallHighScore] = useState<number>(() => {
-    return parseInt(localStorage.getItem('pinball_highscore_recall') || localStorage.getItem('pinball_highscore') || '0', 10);
-  });
-  const [recallMaxLevel, setRecallMaxLevel] = useState<number>(() => {
-    const val = parseInt(localStorage.getItem('pinball_maxlevel_recall') || localStorage.getItem('pinball_maxlevel') || '27', 10);
-    return Math.max(27, val);
-  });
-  const [puzzleHighScore, setPuzzleHighScore] = useState<number>(() => {
-    return parseInt(localStorage.getItem('pinball_highscore_puzzle') || '0', 10);
-  });
-  const [puzzleMaxLevel, setPuzzleMaxLevel] = useState<number>(() => {
-    const val = parseInt(localStorage.getItem('pinball_maxlevel_puzzle') || '23', 10);
-    return Math.max(23, val);
-  });
+  // User Personal Best Stats (Level 27 & Level 23 apply ONLY to 'weptune', others start at 1 / 0)
+  const [recallHighScore, setRecallHighScore] = useState<number>(0);
+  const [recallMaxLevel, setRecallMaxLevel] = useState<number>(1);
+  const [puzzleHighScore, setPuzzleHighScore] = useState<number>(0);
+  const [puzzleMaxLevel, setPuzzleMaxLevel] = useState<number>(1);
 
   // User Authentication State
   const [currentUser, setCurrentUser] = useState<{ id: string; username: string } | null>(null);
@@ -99,28 +90,24 @@ function App() {
   useEffect(() => { targetExitRef.current = targetExit; }, [targetExit]);
 
   // Helper to sync fetched profile stats to state & localStorage
-  const syncProfileToState = (profile: any) => {
-    if (!profile) return;
-    setRecallHighScore((prev) => {
-      const best = Math.max(prev, profile.high_score || 0);
-      localStorage.setItem('pinball_highscore_recall', best.toString());
-      return best;
-    });
-    setRecallMaxLevel((prev) => {
-      const maxLvl = Math.max(27, Math.max(prev, profile.max_level || 27));
-      localStorage.setItem('pinball_maxlevel_recall', maxLvl.toString());
-      return maxLvl;
-    });
-    setPuzzleHighScore((prev) => {
-      const best = Math.max(prev, profile.puzzle_high_score || 0);
-      localStorage.setItem('pinball_highscore_puzzle', best.toString());
-      return best;
-    });
-    setPuzzleMaxLevel((prev) => {
-      const maxLvl = Math.max(23, Math.max(prev, profile.puzzle_max_level || 23));
-      localStorage.setItem('pinball_maxlevel_puzzle', maxLvl.toString());
-      return maxLvl;
-    });
+  const syncProfileToState = (username: string, profile: any) => {
+    const isWeptune = username.toLowerCase() === 'weptune';
+
+    const rScore = profile?.high_score || 0;
+    const rLvl = isWeptune ? Math.max(27, profile?.max_level || 27) : Math.max(1, profile?.max_level || 1);
+    const pScore = profile?.puzzle_high_score || 0;
+    const pLvl = isWeptune ? Math.max(23, profile?.puzzle_max_level || 23) : Math.max(1, profile?.puzzle_max_level || 1);
+
+    setRecallHighScore(rScore);
+    setRecallMaxLevel(rLvl);
+    setPuzzleHighScore(pScore);
+    setPuzzleMaxLevel(pLvl);
+
+    const userKey = username.toLowerCase();
+    localStorage.setItem(`pinball_highscore_recall_${userKey}`, rScore.toString());
+    localStorage.setItem(`pinball_maxlevel_recall_${userKey}`, rLvl.toString());
+    localStorage.setItem(`pinball_highscore_puzzle_${userKey}`, pScore.toString());
+    localStorage.setItem(`pinball_maxlevel_puzzle_${userKey}`, pLvl.toString());
   };
 
   // Load user session on mount
@@ -130,9 +117,13 @@ function App() {
       if (user && user.username) {
         setCurrentUser({ id: user.id, username: user.username });
         const profile = await fetchUserProfile(user.id);
-        if (profile) {
-          syncProfileToState(profile);
-        }
+        syncProfileToState(user.username, profile);
+      } else {
+        setCurrentUser(null);
+        setRecallHighScore(0);
+        setRecallMaxLevel(1);
+        setPuzzleHighScore(0);
+        setPuzzleMaxLevel(1);
       }
     }
     checkAuth();
@@ -603,11 +594,10 @@ function App() {
         onSuccess={(username) => {
           getCurrentUserSession().then(async (user) => {
             if (user) {
-              setCurrentUser({ id: user.id, username: user.username || username });
+              const uName = user.username || username;
+              setCurrentUser({ id: user.id, username: uName });
               const profile = await fetchUserProfile(user.id);
-              if (profile) {
-                syncProfileToState(profile);
-              }
+              syncProfileToState(uName, profile);
             }
           });
         }}
