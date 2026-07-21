@@ -299,24 +299,26 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
           created_at: profile.updated_at || new Date().toISOString()
         }));
     } else {
-      // 2. Fallback query using max_level column
-      const { data: fallbackData } = await supabase
-        .from('profiles')
-        .select(`id, username, max_level, updated_at`)
-        .order('max_level', { ascending: false })
-        .limit(25);
+      // 2. Fallback query only for RECALL mode if column missing
+      if (mode === 'RECALL') {
+        const { data: fallbackData } = await supabase
+          .from('profiles')
+          .select(`id, username, max_level, updated_at`)
+          .order('max_level', { ascending: false })
+          .limit(25);
 
-      if (fallbackData && fallbackData.length > 0) {
-        remoteEntries = fallbackData.map((profile: any) => ({
-          id: profile.id,
-          user_id: profile.id,
-          username: profile.username || 'Player',
-          score: (profile.max_level || 1) * 100,
-          level_reached: profile.max_level || 1,
-          accuracy: 100,
-          mode: mode,
-          created_at: profile.updated_at || new Date().toISOString()
-        }));
+        if (fallbackData && fallbackData.length > 0) {
+          remoteEntries = fallbackData.map((profile: any) => ({
+            id: profile.id,
+            user_id: profile.id,
+            username: profile.username || 'Player',
+            score: (profile.max_level || 1) * 100,
+            level_reached: profile.max_level || 1,
+            accuracy: 100,
+            mode: mode,
+            created_at: profile.updated_at || new Date().toISOString()
+          }));
+        }
       }
     }
   } catch (err) {
