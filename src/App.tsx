@@ -179,6 +179,8 @@ function App() {
     }
   }, [gameMode, gameState]);
 
+  const activeSolutionInvertedIdsRef = useRef<Set<string>>(new Set());
+
   // Set up a new round
   const startNewRound = (nextLevel: number, mode: 'RECALL' | 'PUZZLE' = gameMode) => {
     const config = getLevelConfig(nextLevel);
@@ -196,6 +198,7 @@ function App() {
       setBumpers(puzzleData.scrambledBumpers);
       setLaunchPoint(puzzleData.launcher);
       setTargetExit(puzzleData.targetExit);
+      activeSolutionInvertedIdsRef.current = puzzleData.invertedBumperIds;
       
       const currentPath = tracePath(config.gridSize, puzzleData.scrambledBumpers, puzzleData.launcher);
       setPath(currentPath);
@@ -229,6 +232,31 @@ function App() {
       });
     }, intervalMs);
   };
+
+  // Secret Dev / Recording Auto-Solve for Puzzle Mode (Press Shift + S)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey && (e.key === 'S' || e.key === 's')) {
+        if (screen === 'PLAYING' && gameMode === 'PUZZLE' && activeSolutionInvertedIdsRef.current.size > 0) {
+          const solSet = activeSolutionInvertedIdsRef.current;
+          setClickedBumperIds(new Set(solSet));
+
+          let updatedBumpers = [...bumpersRef.current];
+          solSet.forEach((bId) => {
+            updatedBumpers = rotateBumperInList(updatedBumpers, bId);
+          });
+          setBumpers(updatedBumpers);
+
+          const newPath = tracePath(gridSizeRef.current, updatedBumpers, launchPointRef.current);
+          setPath(newPath);
+          setActualExit(getExitPoint(newPath));
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [screen, gameMode]);
 
   const handleStartGame = (mode: 'RECALL' | 'PUZZLE' = 'RECALL') => {
     setGameMode(mode);
