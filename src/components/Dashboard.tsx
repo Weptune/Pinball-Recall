@@ -199,7 +199,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <Users style={{ width: '40px', height: '40px', color: '#38bdf8', margin: '0 auto 0.75rem' }} />
             <h3 className="locked-title">Multiplayer Matchmaking Queues</h3>
             <p className="locked-desc">
-              Real-time 1v1 pinball recall duels and matchmaking queues are arriving in Version 2.0.
+              ill add it when im not lazy/theres demand
             </p>
             <div className="locked-badge">
               VERSION 2.0 FEATURE
