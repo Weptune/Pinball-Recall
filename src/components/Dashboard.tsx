@@ -109,7 +109,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           PINBALL RECALL
         </h1>
         <p className="hero-subtitle">
-          Test and train your working memory by mentally tracing pinball deflections.
+          hai
         </p>
       </div>
 
@@ -155,7 +155,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   className={`mode-card-btn ${selectedMode === 'RECALL' ? 'active' : ''}`}
                 >
                   <span className="mode-card-title">Memory Recall</span>
-                  <span className="mode-card-desc">Memorize mirrors before fade, predict exit</span>
+                  <span className="mode-card-desc">click the final landing square</span>
                 </button>
 
                 <button
@@ -164,7 +164,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   className={`mode-card-btn ${selectedMode === 'PUZZLE' ? 'active' : ''}`}
                 >
                   <span className="mode-card-title">Puzzle Rotation</span>
-                  <span className="mode-card-desc">Study start & exit, click rods to rotate path</span>
+                  <span className="mode-card-desc">flip the rods to make the ball reach the target</span>
                 </button>
               </div>
             </div>

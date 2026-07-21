@@ -450,6 +450,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   };
 
   const progressPercent = Math.max(0, Math.min(100, (memorizeTimeRemainingMs / totalMemorizeTimeMs) * 100));
+  const progressHue = (progressPercent / 100) * 120;
+
+  const rotationPercent = Math.max(0, Math.min(100, (rotationTimeRemainingMs / 5000) * 100));
+  const rotationHue = (rotationPercent / 100) * 120;
 
   return (
     <div className="chess-board-wrapper">
@@ -515,7 +519,23 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         <div className="chess-progress-track">
           <div 
             className="chess-progress-fill"
-            style={{ width: `${progressPercent}%` }}
+            style={{ 
+              width: `${progressPercent}%`,
+              background: `hsl(${progressHue}, 85%, 48%)`,
+              boxShadow: `0 0 8px hsl(${progressHue}, 85%, 48%)`
+            }}
+          />
+        </div>
+      )}
+      {gameMode === 'PUZZLE' && gameState === 'PREDICT' && (
+        <div className="chess-progress-track">
+          <div 
+            className="chess-progress-fill"
+            style={{ 
+              width: `${rotationPercent}%`,
+              background: `hsl(${rotationHue}, 85%, 48%)`,
+              boxShadow: `0 0 8px hsl(${rotationHue}, 85%, 48%)`
+            }}
           />
         </div>
       )}
