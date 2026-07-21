@@ -247,25 +247,13 @@ export async function saveUserProgress(
       await supabase.from('profiles').update(fallbackUpdates).eq('id', userId);
     }
 
-    // Try inserting into score_history
-    const { error: historyErr } = await supabase.from('score_history').insert({
+    // Insert into score_history using valid schema columns (user_id, score, level_reached, accuracy)
+    await supabase.from('score_history').insert({
       user_id: userId,
-      username: username,
       score: sessionScore,
       level_reached: endingLevel,
       accuracy: accuracyPercent,
-      game_mode: mode,
     });
-
-    if (historyErr) {
-      await supabase.from('score_history').insert({
-        user_id: userId,
-        username: username,
-        score: sessionScore,
-        level_reached: endingLevel,
-        accuracy: accuracyPercent,
-      });
-    }
   } catch (err) {
     console.error("Failed to sync progress to Supabase:", err);
   }
@@ -300,28 +288,26 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
   const map = new Map<string, LeaderboardEntry>();
 
   try {
-    const targetLevelCol = mode === 'PUZZLE' ? 'puzzle_max_level' : 'max_level';
-
     // 2. Fetch profiles table
     const { data: profileData } = await supabase
       .from('profiles')
-      .select(`id, username, ${targetLevelCol}, max_level, updated_at`);
+      .select(`id, username, max_level, updated_at`);
+
+    const profileIdToUsername = new Map<string, string>();
 
     if (profileData && profileData.length > 0) {
       profileData
         .filter((profile: any) => Boolean(profile.username))
         .forEach((profile: any) => {
+          profileIdToUsername.set(profile.id, profile.username);
+
           const isWeptune = profile.username.toLowerCase() === 'weptune';
           let levelVal = 1;
 
           if (mode === 'PUZZLE') {
-            levelVal = isWeptune 
-              ? Math.max(23, profile.puzzle_max_level || 23)
-              : (profile.puzzle_max_level || 1);
+            levelVal = isWeptune ? 23 : (profile.puzzle_max_level || 1);
           } else {
-            levelVal = isWeptune
-              ? Math.max(27, profile.max_level || 27)
-              : (profile.max_level || 1);
+            levelVal = isWeptune ? Math.max(27, profile.max_level || 27) : (profile.max_level || 1);
           }
 
           map.set(profile.username.toLowerCase(), {
@@ -337,24 +323,28 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
         });
     }
 
-    // 3. Query score_history to ensure mode-specific scores in cloud DB are merged
+    // 3. Query score_history and map user_id to username
     const { data: historyData } = await supabase
       .from('score_history')
-      .select('username, level_reached, score, game_mode, created_at')
-      .eq('game_mode', mode);
+      .select('user_id, level_reached, score, created_at');
 
     if (historyData && historyData.length > 0) {
       historyData.forEach((row: any) => {
-        if (!row.username) return;
-        const key = row.username.toLowerCase();
+        const username = profileIdToUsername.get(row.user_id);
+        if (!username) return;
+
+        const isWeptune = username.toLowerCase() === 'weptune';
+        if (isWeptune) return; // weptune uses fixed defaults
+
+        const key = username.toLowerCase();
         const existing = map.get(key);
         const rowLvl = row.level_reached || 1;
 
         if (!existing || existing.level_reached < rowLvl) {
           map.set(key, {
             id: `history-${key}`,
-            user_id: existing?.user_id || `hist-${key}`,
-            username: row.username,
+            user_id: row.user_id,
+            username: username,
             score: rowLvl * 100,
             level_reached: rowLvl,
             accuracy: 100,
