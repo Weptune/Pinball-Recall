@@ -499,7 +499,7 @@ function App() {
                 letterSpacing: '0.05em',
                 boxShadow: '0 0 16px rgba(245, 158, 11, 0.25)'
               }}>
-                🎉 NEW PERSONAL BEST! LEVEL {level}
+                NEW PERSONAL BEST! LEVEL {level}
               </div>
             )}
 
