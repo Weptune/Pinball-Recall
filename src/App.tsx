@@ -179,6 +179,9 @@ function App() {
     }
   }, [gameMode, gameState]);
 
+  // Puzzle solution hint state for recording demo
+  const [puzzleSolutionHint, setPuzzleSolutionHint] = useState<string>('');
+
   // Set up a new round
   const startNewRound = (nextLevel: number, mode: 'RECALL' | 'PUZZLE' = gameMode) => {
     const config = getLevelConfig(nextLevel);
@@ -197,10 +200,16 @@ function App() {
       setLaunchPoint(puzzleData.launcher);
       setTargetExit(puzzleData.targetExit);
       
+      const hintCoords = puzzleData.scrambledBumpers
+        .filter(b => puzzleData.invertedBumperIds.has(b.id))
+        .map(b => `(${b.x + 1}, ${b.y + 1})`);
+      setPuzzleSolutionHint(hintCoords.length > 0 ? hintCoords.join(', ') : 'None');
+
       const currentPath = tracePath(config.gridSize, puzzleData.scrambledBumpers, puzzleData.launcher);
       setPath(currentPath);
       setActualExit(getExitPoint(currentPath));
     } else {
+      setPuzzleSolutionHint('');
       const roundData = generateNonTrivialRound(config.gridSize, config.bumperCount, config.minHits);
       const exit = getExitPoint(roundData.path);
       setBumpers(roundData.bumpers);
@@ -468,6 +477,20 @@ function App() {
             canRotate={gameState === 'PREDICT'}
             rotationTimeRemainingMs={rotationTimeRemainingMs}
           />
+
+          {gameMode === 'PUZZLE' && puzzleSolutionHint && (
+            <div style={{
+              marginTop: '0.85rem',
+              textAlign: 'center',
+              fontSize: '0.72rem',
+              color: 'rgba(255, 255, 255, 0.35)',
+              fontWeight: 600,
+              fontFamily: 'monospace',
+              letterSpacing: '0.05em'
+            }}>
+              Rods to flip (Col, Row): {puzzleSolutionHint}
+            </div>
+          )}
         </div>
       )}
 
