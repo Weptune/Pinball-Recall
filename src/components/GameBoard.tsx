@@ -64,17 +64,18 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   // Helper to map logic coordinates to exact percentage positions inside grid matrix
   const getCellPercentage = (x: number, y: number) => {
     if (containerRef.current) {
+      const gridEl = containerRef.current.querySelector('.chess-grid-container') as HTMLElement;
       const targetEl = containerRef.current.querySelector(`[data-cell="${x},${y}"]`) as HTMLElement;
-      if (targetEl) {
+      if (targetEl && gridEl) {
         const rect = targetEl.getBoundingClientRect();
-        const containerRect = containerRef.current.getBoundingClientRect();
+        const gridRect = gridEl.getBoundingClientRect();
         
-        const centerX = rect.left + rect.width / 2 - containerRect.left;
-        const centerY = rect.top + rect.height / 2 - containerRect.top;
+        const centerX = rect.left + rect.width / 2 - gridRect.left;
+        const centerY = rect.top + rect.height / 2 - gridRect.top;
 
         return {
-          x: (centerX / containerRect.width) * 100,
-          y: (centerY / containerRect.height) * 100,
+          x: (centerX / gridRect.width) * 100,
+          y: (centerY / gridRect.height) * 100,
         };
       }
     }
@@ -568,9 +569,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           <svg 
             style={{
               position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
+              top: '0.6rem',
+              left: '0.6rem',
+              right: '0.6rem',
+              bottom: '0.6rem',
+              width: 'calc(100% - 1.2rem)',
+              height: 'calc(100% - 1.2rem)',
               pointerEvents: 'none',
               zIndex: 20
             }}
