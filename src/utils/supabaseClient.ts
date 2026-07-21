@@ -292,19 +292,24 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
         .filter((profile: any) => Boolean(profile.username))
         .map((profile: any) => {
           const isWeptune = profile.username.toLowerCase() === 'weptune';
-          const fallbackDefault = isWeptune ? (mode === 'PUZZLE' ? 23 : 27) : 1;
-          const rawVal = profile[targetLevelCol] !== undefined && profile[targetLevelCol] !== null
-            ? profile[targetLevelCol]
-            : (isWeptune ? fallbackDefault : (profile.max_level || 1));
-          
-          const finalVal = isWeptune ? Math.max(fallbackDefault, rawVal) : Math.max(1, rawVal);
+          let levelVal = 1;
+
+          if (mode === 'PUZZLE') {
+            levelVal = isWeptune 
+              ? Math.max(23, profile.puzzle_max_level || 23)
+              : (profile.puzzle_max_level || 1);
+          } else {
+            levelVal = isWeptune
+              ? Math.max(27, profile.max_level || 27)
+              : (profile.max_level || 1);
+          }
 
           return {
             id: profile.id,
             user_id: profile.id,
             username: profile.username,
-            score: finalVal * 100,
-            level_reached: finalVal,
+            score: levelVal * 100,
+            level_reached: levelVal,
             accuracy: 100,
             mode: mode,
             created_at: profile.updated_at || new Date().toISOString()
@@ -323,15 +328,16 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
           .filter((profile: any) => Boolean(profile.username))
           .map((profile: any) => {
             const isWeptune = profile.username.toLowerCase() === 'weptune';
-            const fallbackDefault = isWeptune ? (mode === 'PUZZLE' ? 23 : 27) : 1;
-            const finalVal = isWeptune ? Math.max(fallbackDefault, profile.max_level || 27) : Math.max(1, profile.max_level || 1);
+            const levelVal = mode === 'PUZZLE'
+              ? (isWeptune ? 23 : 1)
+              : (isWeptune ? Math.max(27, profile.max_level || 27) : (profile.max_level || 1));
 
             return {
               id: profile.id,
               user_id: profile.id,
               username: profile.username,
-              score: finalVal * 100,
-              level_reached: finalVal,
+              score: levelVal * 100,
+              level_reached: levelVal,
               accuracy: 100,
               mode: mode,
               created_at: profile.updated_at || new Date().toISOString()
