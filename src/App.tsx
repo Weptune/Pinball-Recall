@@ -378,16 +378,30 @@ function App() {
     setStreak(nextStreak);
     setConsecutiveMistakes(nextConsecutiveMistakes);
 
+    const userKey = currentUser ? currentUser.username.toLowerCase() : 'guest';
+
     if (gameMode === 'PUZZLE') {
       if (nextLevel > puzzleMaxLevel) {
         setPuzzleMaxLevel(nextLevel);
+        localStorage.setItem(`pinball_maxlevel_puzzle_${userKey}`, nextLevel.toString());
         localStorage.setItem('pinball_maxlevel_puzzle', nextLevel.toString());
+      }
+      if (score > puzzleHighScore) {
+        setPuzzleHighScore(score);
+        localStorage.setItem(`pinball_highscore_puzzle_${userKey}`, score.toString());
+        localStorage.setItem('pinball_highscore_puzzle', score.toString());
       }
     } else {
       if (nextLevel > recallMaxLevel) {
         setRecallMaxLevel(nextLevel);
+        localStorage.setItem(`pinball_maxlevel_recall_${userKey}`, nextLevel.toString());
         localStorage.setItem('pinball_maxlevel_recall', nextLevel.toString());
         localStorage.setItem('pinball_maxlevel', nextLevel.toString());
+      }
+      if (score > recallHighScore) {
+        setRecallHighScore(score);
+        localStorage.setItem(`pinball_highscore_recall_${userKey}`, score.toString());
+        localStorage.setItem('pinball_highscore_recall', score.toString());
       }
     }
 
@@ -426,11 +440,14 @@ function App() {
     if (currentUser) {
       const totalAttempted = Math.max(1, trialCount);
       const accuracyPercent = Math.round((correctAnswersCount / totalAttempted) * 100);
+      const maxLvlAchieved = gameMode === 'PUZZLE' ? Math.max(level, puzzleMaxLevel) : Math.max(level, recallMaxLevel);
+      const maxScoreAchieved = gameMode === 'PUZZLE' ? Math.max(score, puzzleHighScore) : Math.max(score, recallHighScore);
+
       saveUserProgress(
         currentUser.id,
         currentUser.username,
-        score,
-        level,
+        maxScoreAchieved,
+        maxLvlAchieved,
         accuracyPercent,
         correctAnswersCount,
         totalAttempted,

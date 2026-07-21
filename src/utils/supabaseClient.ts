@@ -215,12 +215,17 @@ export async function saveUserProgress(
       updated_at: new Date().toISOString(),
     };
 
+    const userKey = username.toLowerCase();
     if (mode === 'PUZZLE') {
       updates.puzzle_high_score = Math.max(existingProfile?.puzzle_high_score || 0, sessionScore);
       updates.puzzle_max_level = Math.max(existingProfile?.puzzle_max_level || 1, endingLevel);
+      localStorage.setItem(`pinball_maxlevel_puzzle_${userKey}`, updates.puzzle_max_level.toString());
+      localStorage.setItem(`pinball_highscore_puzzle_${userKey}`, updates.puzzle_high_score.toString());
     } else {
       updates.high_score = Math.max(existingProfile?.high_score || 0, sessionScore);
       updates.max_level = Math.max(existingProfile?.max_level || 1, endingLevel);
+      localStorage.setItem(`pinball_maxlevel_recall_${userKey}`, updates.max_level.toString());
+      localStorage.setItem(`pinball_highscore_recall_${userKey}`, updates.high_score.toString());
     }
 
     updates.total_games = (existingProfile?.total_games || 0) + 1;
