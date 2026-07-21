@@ -371,7 +371,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                   <div className="rule-item">
                     <span className="rule-item-title">4. Select the Exit Target</span>
-                    <p className="rule-item-text">Click the border arrow where you predict the ball will exit. Correct answers raise your level; 1 mistake drops your level immediately.</p>
+                    <p className="rule-item-text">Click the border arrow where you predict the ball will exit. Correct answers raise your level; 1 mistake and youre out.</p>
                   </div>
                 </>
               )}
