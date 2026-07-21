@@ -10,27 +10,27 @@
   background-color: #0f121d;
 
   /* Master Tournament Slate Palette */
-  --bg-main: radial-gradient(circle at 50% 30%, #1a1f30 0%, #0a0d16 100%);
-  --card-bg: #161b29;
-  --card-border: #252b3d;
-  
-  --sq-dark: #1f2333;
-  --sq-light: #282e42;
-  --sq-hit: #323a54;
+  --bg-main: #080c14;
+  --card-bg: #0f172a;
+  --card-border: rgba(255, 255, 255, 0.08);
 
-  --btn-green: #22c55e;
-  --btn-green-shadow: #15803d;
-  --btn-green-hover: #4ade80;
+  --btn-green: #10b981;
+  --btn-green-shadow: #047857;
+  --btn-green-hover: #34d399;
 
   --btn-secondary: #1e293b;
   --btn-secondary-border: #334155;
   --btn-secondary-hover: #334155;
 
-  --text-white: #ffffff;
+  --text-white: #f8fafc;
   --text-muted: #94a3b8;
   --text-gold: #f59e0b;
-  --text-blue: #3b82f6;
+  --text-blue: #06b6d4;
   --font-display: 'Space Grotesk', sans-serif;
+
+  --sq-dark: #1e293b;
+  --sq-light: #2d3748;
+  --sq-hit: rgba(16, 185, 129, 0.22);
 }
 
 * {

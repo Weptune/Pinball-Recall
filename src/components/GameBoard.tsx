@@ -61,8 +61,24 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   const exitOptions = getExitOptions(gridSize);
 
-  // Helper to map logic coordinates to percentage positions inside grid matrix
+  // Helper to map logic coordinates to exact percentage positions inside grid matrix
   const getCellPercentage = (x: number, y: number) => {
+    if (containerRef.current) {
+      const targetEl = containerRef.current.querySelector(`[data-cell="${x},${y}"]`) as HTMLElement;
+      if (targetEl) {
+        const rect = targetEl.getBoundingClientRect();
+        const containerRect = containerRef.current.getBoundingClientRect();
+        
+        const centerX = rect.left + rect.width / 2 - containerRect.left;
+        const centerY = rect.top + rect.height / 2 - containerRect.top;
+
+        return {
+          x: (centerX / containerRect.width) * 100,
+          y: (centerY / containerRect.height) * 100,
+        };
+      }
+    }
+
     const totalCellsCount = gridSize + 2;
     const colPercent = ((x + 1.5) / totalCellsCount) * 100;
     const rowPercent = ((y + 1.5) / totalCellsCount) * 100;
@@ -271,6 +287,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     return (
       <button 
         key={option.label}
+        data-cell={`${option.x},${option.y}`}
         type="button"
         disabled={gameState !== 'PREDICT' || gameMode === 'PUZZLE'}
         onClick={() => handleSelectExitClick(option)}
@@ -315,6 +332,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             gridElements.push(
               <div 
                 key={`launcher-${r}-${c}`}
+                data-cell={`${x},${y}`}
                 className="board-launcher-tile"
                 style={{ gridColumn: c + 1, gridRow: r + 1 }}
               >
@@ -340,6 +358,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         gridElements.push(
           <div
             key={`cell-${x}-${y}`}
+            data-cell={`${x},${y}`}
             className={`board-square ${isLightSquare ? 'sq-light' : 'sq-dark'} ${revealed && gameState === 'SIMULATE' ? 'sq-hit' : ''} ${isInteractive ? 'sq-interactive-rotate' : ''} ${isClicked ? 'sq-clicked-active' : ''}`}
             style={{ gridColumn: c + 1, gridRow: r + 1 }}
             onClick={() => {
@@ -529,12 +548,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           <svg 
             style={{
               position: 'absolute',
-              top: '0.6rem',
-              left: '0.6rem',
-              right: '0.6rem',
-              bottom: '0.6rem',
-              width: 'calc(100% - 1.2rem)',
-              height: 'calc(100% - 1.2rem)',
+              inset: 0,
+              width: '100%',
+              height: '100%',
               pointerEvents: 'none',
               zIndex: 20
             }}
