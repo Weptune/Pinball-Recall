@@ -19,7 +19,6 @@ interface ScoreBoardProps {
 }
 
 export const ScoreBoard: React.FC<ScoreBoardProps> = ({
-  score,
   level,
   streak,
   consecutiveMistakes,
@@ -61,14 +60,6 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({
 
         {/* Stats Cluster */}
         <div className="stats-cluster">
-          {/* Score */}
-          <div className="stat-pill">
-            <div className="stat-pill-data">
-              <span className="stat-pill-label">Score</span>
-              <span className="stat-pill-val" style={{ color: '#f59e0b' }}>{score}</span>
-            </div>
-          </div>
-
           {/* Level */}
           <div className="stat-pill">
             <div className="stat-pill-data">

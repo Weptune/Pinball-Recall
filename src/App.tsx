@@ -483,8 +483,8 @@ function App() {
 
           <div className="summary-stats-grid">
             <div className="summary-stat-box">
-              <span className="summary-label">Final Score</span>
-              <span className="summary-val text-cyan">{score}</span>
+              <span className="summary-label">Level Reached</span>
+              <span className="summary-val text-cyan">Lvl {level}</span>
             </div>
             <div className="summary-stat-box">
               <span className="summary-label">Accuracy</span>
@@ -492,11 +492,6 @@ function App() {
                 {Math.round((correctAnswersCount / Math.max(1, trialCount)) * 100)}%
               </span>
             </div>
-          </div>
-
-          <div className="summary-footer-row">
-            <span>Level Reached:</span>
-            <span className="summary-level-val">Level {level}</span>
           </div>
 
           {currentUser && (
