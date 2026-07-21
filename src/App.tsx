@@ -193,7 +193,6 @@ function App() {
     setMinHits(config.minHits);
     setSelectedExit(null);
     setClickedBumperIds(new Set());
-    setShowSolutionHint(false);
 
     if (rotationTimerRef.current) clearInterval(rotationTimerRef.current);
 
@@ -216,9 +215,9 @@ function App() {
         b => puzzleData.invertedBumperIds.has(b.id) && hitBumperCoords.has(`${b.x},${b.y}`)
       );
 
-      // Row, Column format: Row = y + 1, Col = x + 1
-      const hintCoords = relevantInvertedBumpers.map(b => `R${b.y + 1} C${b.x + 1}`);
-      setPuzzleSolutionHint(hintCoords.length > 0 ? hintCoords.join(', ') : 'None (Path aligned!)');
+      // (Row, Column) format: e.g. (1,4)
+      const hintCoords = relevantInvertedBumpers.map(b => `(${b.y + 1},${b.x + 1})`);
+      setPuzzleSolutionHint(hintCoords.length > 0 ? hintCoords.join(', ') : 'None');
 
       const currentPath = tracePath(config.gridSize, puzzleData.scrambledBumpers, puzzleData.launcher);
       setPath(currentPath);
@@ -515,7 +514,7 @@ function App() {
               fontFamily: 'monospace',
               letterSpacing: '0.05em'
             }}>
-              Rods to flip (Row, Col): {puzzleSolutionHint}
+              Rods to flip: {puzzleSolutionHint}
             </div>
           )}
         </div>
