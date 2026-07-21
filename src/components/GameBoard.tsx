@@ -21,6 +21,7 @@ interface GameBoardProps {
   targetExit?: Position | null;
   onRotateBumper?: (id: string) => void;
   canRotate?: boolean;
+  rotationTimeRemainingMs?: number;
 }
 
 interface Waypoint {
@@ -48,6 +49,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   targetExit = null,
   onRotateBumper,
   canRotate = false,
+  rotationTimeRemainingMs = 5000,
 }) => {
   const [ballPos, setBallPos] = useState<{ x: number; y: number } | null>(null);
   const [trailPolyline, setTrailPolyline] = useState<string>('');
@@ -451,6 +453,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const progressPercent = Math.max(0, Math.min(100, (memorizeTimeRemainingMs / totalMemorizeTimeMs) * 100));
   const progressHue = (progressPercent / 100) * 120;
 
+  const rotationPercent = Math.max(0, Math.min(100, (rotationTimeRemainingMs / 5000) * 100));
+  const rotationHue = (rotationPercent / 100) * 120;
+
   return (
     <div className="chess-board-wrapper">
       {/* Top Banner Status */}
@@ -504,8 +509,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           </span>
         )}
         {gameMode === 'PUZZLE' && gameState === 'PREDICT' && (
-          <span className="chess-countdown-text" style={{ color: '#22c55e' }}>
-            ∞ Unlimited Time
+          <span className="chess-countdown-text" style={{ color: '#f59e0b' }}>
+            {(rotationTimeRemainingMs / 1000).toFixed(1)}s
           </span>
         )}
       </div>
@@ -519,6 +524,18 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               width: `${progressPercent}%`,
               background: `hsl(${progressHue}, 85%, 48%)`,
               boxShadow: `0 0 8px hsl(${progressHue}, 85%, 48%)`
+            }}
+          />
+        </div>
+      )}
+      {gameMode === 'PUZZLE' && gameState === 'PREDICT' && (
+        <div className="chess-progress-track">
+          <div 
+            className="chess-progress-fill"
+            style={{ 
+              width: `${rotationPercent}%`,
+              background: `hsl(${rotationHue}, 85%, 48%)`,
+              boxShadow: `0 0 8px hsl(${rotationHue}, 85%, 48%)`
             }}
           />
         </div>

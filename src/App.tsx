@@ -147,10 +147,36 @@ function App() {
     };
   }, []);
 
-  // Unlimited rotation time in Puzzle Mode (no auto-run timer)
+  const [rotationTimeRemainingMs, setRotationTimeRemainingMs] = useState<number>(5000);
+
+  // Puzzle Mode 5-second rotation phase auto-run countdown timer
   useEffect(() => {
     if (gameMode === 'PUZZLE' && gameState === 'PREDICT') {
+      setRotationTimeRemainingMs(5000);
+
       if (rotationTimerRef.current) clearInterval(rotationTimerRef.current);
+
+      const intervalMs = 100;
+      rotationTimerRef.current = window.setInterval(() => {
+        setRotationTimeRemainingMs((prev) => {
+          if (prev <= intervalMs) {
+            if (rotationTimerRef.current) {
+              clearInterval(rotationTimerRef.current);
+              rotationTimerRef.current = null;
+            }
+            triggerPuzzleTrajectoryTest();
+            return 0;
+          }
+          return prev - intervalMs;
+        });
+      }, intervalMs);
+
+      return () => {
+        if (rotationTimerRef.current) {
+          clearInterval(rotationTimerRef.current);
+          rotationTimerRef.current = null;
+        }
+      };
     }
   }, [gameMode, gameState]);
 
@@ -461,6 +487,7 @@ function App() {
             targetExit={targetExit}
             onRotateBumper={handleRotateBumper}
             canRotate={gameState === 'PREDICT'}
+            rotationTimeRemainingMs={rotationTimeRemainingMs}
           />
 
           {gameMode === 'PUZZLE' && puzzleSolutionHint && (
