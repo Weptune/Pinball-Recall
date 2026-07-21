@@ -164,7 +164,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   className={`mode-card-btn ${selectedMode === 'PUZZLE' ? 'active' : ''}`}
                 >
                   <span className="mode-card-title">Puzzle Rotation</span>
-                  <span className="mode-card-desc">flip the rods to make the ball reaches the target</span>
+                  <span className="mode-card-desc">flip the rods to make the ball reach the target</span>
                 </button>
               </div>
             </div>
