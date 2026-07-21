@@ -92,18 +92,24 @@ function App() {
   // Helper to sync fetched profile stats to state & localStorage
   const syncProfileToState = (username: string, profile: any) => {
     const isWeptune = username.toLowerCase() === 'weptune';
+    const userKey = username.toLowerCase();
 
-    const rScore = profile?.high_score || 0;
-    const rLvl = isWeptune ? Math.max(27, profile?.max_level || 27) : Math.max(1, profile?.max_level || 1);
-    const pScore = profile?.puzzle_high_score || 0;
-    const pLvl = isWeptune ? Math.max(23, profile?.puzzle_max_level || 23) : Math.max(1, profile?.puzzle_max_level || 1);
+    // Read existing local storage values
+    const localRecallLvl = parseInt(localStorage.getItem(`pinball_maxlevel_recall_${userKey}`) || '1', 10);
+    const localRecallScore = parseInt(localStorage.getItem(`pinball_highscore_recall_${userKey}`) || '0', 10);
+    const localPuzzleLvl = parseInt(localStorage.getItem(`pinball_maxlevel_puzzle_${userKey}`) || '1', 10);
+    const localPuzzleScore = parseInt(localStorage.getItem(`pinball_highscore_puzzle_${userKey}`) || '0', 10);
+
+    const rScore = Math.max(localRecallScore, profile?.high_score || 0);
+    const rLvl = isWeptune ? Math.max(27, profile?.max_level || 27) : Math.max(localRecallLvl, profile?.max_level || 1);
+    const pScore = Math.max(localPuzzleScore, profile?.puzzle_high_score || 0);
+    const pLvl = isWeptune ? Math.max(23, profile?.puzzle_max_level || 23) : Math.max(localPuzzleLvl, profile?.puzzle_max_level || 1);
 
     setRecallHighScore(rScore);
     setRecallMaxLevel(rLvl);
     setPuzzleHighScore(pScore);
     setPuzzleMaxLevel(pLvl);
 
-    const userKey = username.toLowerCase();
     localStorage.setItem(`pinball_highscore_recall_${userKey}`, rScore.toString());
     localStorage.setItem(`pinball_maxlevel_recall_${userKey}`, rLvl.toString());
     localStorage.setItem(`pinball_highscore_puzzle_${userKey}`, pScore.toString());
@@ -116,6 +122,15 @@ function App() {
       const user = await getCurrentUserSession();
       if (user && user.username) {
         setCurrentUser({ id: user.id, username: user.username });
+        
+        // Immediately load user-scoped local storage before network fetch to eliminate flickering
+        const userKey = user.username.toLowerCase();
+        const isWeptune = userKey === 'weptune';
+        const localRecallLvl = parseInt(localStorage.getItem(`pinball_maxlevel_recall_${userKey}`) || (isWeptune ? '27' : '1'), 10);
+        const localPuzzleLvl = parseInt(localStorage.getItem(`pinball_maxlevel_puzzle_${userKey}`) || (isWeptune ? '23' : '1'), 10);
+        setRecallMaxLevel(isWeptune ? Math.max(27, localRecallLvl) : localRecallLvl);
+        setPuzzleMaxLevel(isWeptune ? Math.max(23, localPuzzleLvl) : localPuzzleLvl);
+
         const profile = await fetchUserProfile(user.id);
         syncProfileToState(user.username, profile);
       } else {
