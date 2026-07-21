@@ -71,28 +71,45 @@ export async function signUpUser(username: string, pass: string) {
     throw new Error("Username already taken. Please choose another username or sign in.");
   }
 
-  // 2. Insert new profile into Supabase database
+  // 2. Insert new profile into Supabase database (with automatic fallback if puzzle columns missing)
   const newUserId = crypto.randomUUID();
-  const { data: newProfile, error } = await supabase
+  let insertPayload: any = {
+    id: newUserId,
+    username: cleanUser,
+    password_hash: pass,
+    high_score: 0,
+    max_level: 1,
+    puzzle_high_score: 0,
+    puzzle_max_level: 1,
+    total_games: 0,
+    total_correct: 0,
+    total_trials: 0,
+  };
+
+  let { data: newProfile, error } = await supabase
     .from('profiles')
-    .insert({
-      id: newUserId,
-      username: cleanUser,
-      password_hash: pass,
-      high_score: 0,
-      max_level: 1,
-      puzzle_high_score: 0,
-      puzzle_max_level: 1,
-      total_games: 0,
-      total_correct: 0,
-      total_trials: 0,
-    })
+    .insert(insertPayload)
     .select()
     .single();
 
   if (error) {
+    // Fallback without puzzle columns if database schema lacks puzzle_high_score / puzzle_max_level columns
+    delete insertPayload.puzzle_high_score;
+    delete insertPayload.puzzle_max_level;
+
+    const res = await supabase
+      .from('profiles')
+      .insert(insertPayload)
+      .select()
+      .single();
+
+    newProfile = res.data;
+    error = res.error;
+  }
+
+  if (error || !newProfile) {
     console.error("SignUp Error:", error);
-    throw new Error(`Database error: ${error.message}. Make sure SQL table script has been run in Supabase.`);
+    throw new Error(`Database error: ${error?.message || "Failed to create account"}`);
   }
 
   const session = { id: newProfile.id, username: newProfile.username };
