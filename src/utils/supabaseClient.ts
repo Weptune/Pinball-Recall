@@ -334,10 +334,13 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
     // 3. Query score_history and aggregate mode-matching session entries
     const { data: historyData } = await supabase
       .from('score_history')
-      .select('user_id, user_email, level_reached, score, created_at');
+      .select('id, user_id, user_email, level_reached, score, created_at');
 
     if (historyData && historyData.length > 0) {
       historyData.forEach((row: any) => {
+        // Exclude synthetic test insertion row
+        if (row.id === 'c62728a3-5fd1-4d38-b498-0d65dbd17017') return;
+
         const username = profileIdToUsername.get(row.user_id);
         if (!username) return;
 
