@@ -1255,6 +1255,34 @@ body {
   font-family: var(--font-display);
 }
 
+/* Chessboard Coordinate Labels */
+.chess-label-row {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+  font-family: var(--font-display);
+  user-select: none;
+  line-height: 1;
+  z-index: 2;
+}
+
+.chess-label-col {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+  font-family: var(--font-display);
+  user-select: none;
+  line-height: 1;
+}
+
 /* Interactive Rod Rotation Styles */
 .sq-interactive-rotate {
   cursor: pointer;

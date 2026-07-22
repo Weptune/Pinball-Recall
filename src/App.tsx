@@ -218,8 +218,8 @@ function App() {
         puzzleData.invertedBumperIds
       );
 
-      // Format as (Row, Col) 1-indexed: e.g. (R2,C4)
-      const hintCoords = minimalBumpersToFlip.map(b => `(R${b.y + 1},C${b.x + 1})`);
+      // Format as Chess notation: e.g. Column C, Row 5 -> C5
+      const hintCoords = minimalBumpersToFlip.map(b => `${String.fromCharCode(65 + b.x)}${b.y + 1}`);
       setPuzzleSolutionHint(hintCoords.length > 0 ? hintCoords.join(', ') : 'None');
 
       const currentPath = tracePath(config.gridSize, puzzleData.scrambledBumpers, puzzleData.launcher);

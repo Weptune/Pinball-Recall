@@ -356,6 +356,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         const isClicked = bumper && clickedBumperIds.has(bumper.id);
         const isInteractive = gameMode === 'PUZZLE' && canRotate && Boolean(bumper);
 
+        const colLetter = String.fromCharCode(65 + x);
+        const rowNum = y + 1;
+
         gridElements.push(
           <div
             key={`cell-${x}-${y}`}
@@ -369,6 +372,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               }
             }}
           >
+            {/* Chess Coordinate Edge Badges */}
+            {x === 0 && (
+              <span className="chess-label-row">{rowNum}</span>
+            )}
+            {y === 0 && (
+              <span className="chess-label-col">{colLetter}</span>
+            )}
+
             {/* Rotation Badge Overlay for clicked cells during hidden rotation phase */}
             {isClicked && !revealed && (
               <div className="clicked-rod-badge" title="Rod Rotated">
