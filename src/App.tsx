@@ -208,21 +208,13 @@ function App() {
       setLaunchPoint(puzzleData.launcher);
       setTargetExit(puzzleData.targetExit);
       
-      // Collect cell coordinates of bumpers that are ACTUALLY HIT along the solution trajectory path
-      const hitBumperCoords = new Set<string>();
-      puzzleData.solutionPath.forEach(step => {
-        if (step.isBumperHit) {
-          hitBumperCoords.add(`${step.x},${step.y}`);
-        }
-      });
-
-      // Filter inverted bumpers to ONLY those that are actually hit along the trajectory path (excluding decoy non-hit bumpers!)
+      // Collect all bumpers inverted during scrambling to guarantee a 100% accurate solution list
       const relevantInvertedBumpers = puzzleData.scrambledBumpers.filter(
-        b => puzzleData.invertedBumperIds.has(b.id) && hitBumperCoords.has(`${b.x},${b.y}`)
+        b => puzzleData.invertedBumperIds.has(b.id)
       );
 
-      // (Row, Column) format: e.g. (1,4)
-      const hintCoords = relevantInvertedBumpers.map(b => `(${b.y + 1},${b.x + 1})`);
+      // (Row, Col) 1-indexed format: e.g. (R2,C4)
+      const hintCoords = relevantInvertedBumpers.map(b => `(R${b.y + 1},C${b.x + 1})`);
       setPuzzleSolutionHint(hintCoords.length > 0 ? hintCoords.join(', ') : 'None');
 
       const currentPath = tracePath(config.gridSize, puzzleData.scrambledBumpers, puzzleData.launcher);
