@@ -487,7 +487,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             ) : gameState === 'SIMULATE' ? (
               "TESTING PATH..."
             ) : (
-              selectedExit?.x === actualExit?.x && selectedExit?.y === actualExit?.y ? (
+              (targetExit && actualExit && targetExit.x === actualExit.x && targetExit.y === actualExit.y) ? (
                 <span style={{ color: '#22c55e', fontWeight: 800 }}>PATH CONNECTED!</span>
               ) : (
                 <span style={{ color: '#ef4444', fontWeight: 800 }}>MISCALCULATED!</span>

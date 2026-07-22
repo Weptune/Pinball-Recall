@@ -314,7 +314,11 @@ function App() {
 
     setPath(currentPath);
     setActualExit(currentExit);
-    setSelectedExit({ x: currentExit.x, y: currentExit.y });
+    if (targetExitRef.current) {
+      setSelectedExit({ x: targetExitRef.current.x, y: targetExitRef.current.y });
+    } else {
+      setSelectedExit({ x: currentExit.x, y: currentExit.y });
+    }
     setGameState('SIMULATE');
 
     const simulationDuration = Math.max(900, Math.min(2400, currentPath.length * 220)) + 400;
@@ -347,6 +351,7 @@ function App() {
       ? customIsCorrect
       : (actualExit && selection.x === actualExit.x && selection.y === actualExit.y);
     const bounceHits = path.filter(s => s.isBumperHit).length;
+    const userKey = currentUser ? currentUser.username.toLowerCase() : 'guest';
     
     let nextLevel = level;
     let nextConsecutiveMistakes = consecutiveMistakes;
@@ -364,16 +369,33 @@ function App() {
           if (newScore > puzzleHighScore) {
             setPuzzleHighScore(newScore);
             localStorage.setItem('pinball_highscore_puzzle', newScore.toString());
+            localStorage.setItem(`pinball_highscore_puzzle_${userKey}`, newScore.toString());
           }
         } else {
           if (newScore > recallHighScore) {
             setRecallHighScore(newScore);
             localStorage.setItem('pinball_highscore_recall', newScore.toString());
-            localStorage.setItem('pinball_highscore', newScore.toString());
+            localStorage.setItem(`pinball_highscore_recall_${userKey}`, newScore.toString());
           }
         }
         return newScore;
       });
+
+      // Update Max Completed Level PB strictly upon successful round completion
+      if (gameMode === 'PUZZLE') {
+        if (level > puzzleMaxLevel) {
+          setPuzzleMaxLevel(level);
+          localStorage.setItem(`pinball_maxlevel_puzzle_${userKey}`, level.toString());
+          localStorage.setItem('pinball_maxlevel_puzzle', level.toString());
+        }
+      } else {
+        if (level > recallMaxLevel) {
+          setRecallMaxLevel(level);
+          localStorage.setItem(`pinball_maxlevel_recall_${userKey}`, level.toString());
+          localStorage.setItem('pinball_maxlevel_recall', level.toString());
+        }
+      }
+
       setCorrectAnswersCount(prev => prev + 1);
       nextStreak += 1;
       nextConsecutiveMistakes = 0;
@@ -389,33 +411,6 @@ function App() {
     setLevel(nextLevel);
     setStreak(nextStreak);
     setConsecutiveMistakes(nextConsecutiveMistakes);
-
-    const userKey = currentUser ? currentUser.username.toLowerCase() : 'guest';
-
-    if (gameMode === 'PUZZLE') {
-      if (nextLevel > puzzleMaxLevel) {
-        setPuzzleMaxLevel(nextLevel);
-        localStorage.setItem(`pinball_maxlevel_puzzle_${userKey}`, nextLevel.toString());
-        localStorage.setItem('pinball_maxlevel_puzzle', nextLevel.toString());
-      }
-      if (score > puzzleHighScore) {
-        setPuzzleHighScore(score);
-        localStorage.setItem(`pinball_highscore_puzzle_${userKey}`, score.toString());
-        localStorage.setItem('pinball_highscore_puzzle', score.toString());
-      }
-    } else {
-      if (nextLevel > recallMaxLevel) {
-        setRecallMaxLevel(nextLevel);
-        localStorage.setItem(`pinball_maxlevel_recall_${userKey}`, nextLevel.toString());
-        localStorage.setItem('pinball_maxlevel_recall', nextLevel.toString());
-        localStorage.setItem('pinball_maxlevel', nextLevel.toString());
-      }
-      if (score > recallHighScore) {
-        setRecallHighScore(score);
-        localStorage.setItem(`pinball_highscore_recall_${userKey}`, score.toString());
-        localStorage.setItem('pinball_highscore_recall', score.toString());
-      }
-    }
 
     // Auto-advance round after 1 second
     if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
@@ -452,7 +447,7 @@ function App() {
     if (currentUser) {
       const totalAttempted = Math.max(1, trialCount);
       const accuracyPercent = Math.round((correctAnswersCount / totalAttempted) * 100);
-      const maxLvlAchieved = gameMode === 'PUZZLE' ? Math.max(level, puzzleMaxLevel) : Math.max(level, recallMaxLevel);
+      const maxLvlAchieved = gameMode === 'PUZZLE' ? puzzleMaxLevel : recallMaxLevel;
       const maxScoreAchieved = gameMode === 'PUZZLE' ? Math.max(score, puzzleHighScore) : Math.max(score, recallHighScore);
 
       saveUserProgress(
