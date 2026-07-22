@@ -293,9 +293,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         disabled={gameState !== 'PREDICT' || gameMode === 'PUZZLE'}
         onClick={() => handleSelectExitClick(option)}
         className={btnClass}
-        style={{ gridColumn: option.x + 2, gridRow: option.y + 2 }}
+        style={{ gridColumn: option.x + 2, gridRow: option.y + 2, position: 'relative' }}
         title={isTargetExitPort ? "Target Exit Port" : undefined}
       >
+        {option.side === 'TOP' && (
+          <span className="chess-label-top-border">{String.fromCharCode(65 + option.x)}</span>
+        )}
+        {option.side === 'LEFT' && (
+          <span className="chess-label-left-border">{option.y + 1}</span>
+        )}
         {getArrowIcon()}
       </button>
     );
@@ -335,8 +341,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 key={`launcher-${r}-${c}`}
                 data-cell={`${x},${y}`}
                 className="board-launcher-tile"
-                style={{ gridColumn: c + 1, gridRow: r + 1 }}
+                style={{ gridColumn: c + 1, gridRow: r + 1, position: 'relative' }}
               >
+                {r === 0 && (
+                  <span className="chess-label-top-border">{String.fromCharCode(65 + x)}</span>
+                )}
+                {c === 0 && (
+                  <span className="chess-label-left-border">{y + 1}</span>
+                )}
                 {getLauncherIcon()}
               </div>
             );
@@ -356,9 +368,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         const isClicked = bumper && clickedBumperIds.has(bumper.id);
         const isInteractive = gameMode === 'PUZZLE' && canRotate && Boolean(bumper);
 
-        const colLetter = String.fromCharCode(65 + x);
-        const rowNum = y + 1;
-
         gridElements.push(
           <div
             key={`cell-${x}-${y}`}
@@ -372,14 +381,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               }
             }}
           >
-            {/* Chess Coordinate Edge Badges */}
-            {x === 0 && (
-              <span className="chess-label-row">{rowNum}</span>
-            )}
-            {y === 0 && (
-              <span className="chess-label-col">{colLetter}</span>
-            )}
-
             {/* Rotation Badge Overlay for clicked cells during hidden rotation phase */}
             {isClicked && !revealed && (
               <div className="clicked-rod-badge" title="Rod Rotated">
