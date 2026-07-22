@@ -112,7 +112,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           PINBALL RECALL
         </h1>
         <p className="hero-subtitle">
-          Spatial Reasoning & Trajectory Training
+          a non paywalled version of pinball recall :)
         </p>
       </div>
 
