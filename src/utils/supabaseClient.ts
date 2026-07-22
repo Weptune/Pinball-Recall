@@ -268,7 +268,7 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
   const session = await getCurrentUserSession();
   if (session && session.username) {
     const isWeptune = session.username.toLowerCase() === 'weptune';
-    const defaultLevel = isWeptune ? (mode === 'PUZZLE' ? 23 : 27) : 1;
+    const defaultLevel = isWeptune ? (mode === 'PUZZLE' ? 23 : 31) : 1;
     const localLevelKey = `pinball_maxlevel_${mode.toLowerCase()}_${session.username.toLowerCase()}`;
     const localLevel = parseInt(localStorage.getItem(localLevelKey) || defaultLevel.toString(), 10);
 
@@ -313,7 +313,7 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
             else levelVal = profile.puzzle_max_level || 1;
           } else {
             // RECALL MODE
-            if (isWeptune) levelVal = Math.max(27, profile.max_level || 27);
+            if (isWeptune) levelVal = Math.max(31, profile.max_level || 31);
             else if (isAri) levelVal = Math.max(13, profile.max_level || 13);
             else levelVal = profile.max_level || 1;
           }
