@@ -293,24 +293,27 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
       .from('profiles')
       .select(`id, username, max_level, updated_at`);
 
-    const profileIdToUsername = new Map<string, string>();
-
     if (profileData && profileData.length > 0) {
       profileData
         .filter((profile: any) => Boolean(profile.username))
         .forEach((profile: any) => {
-          profileIdToUsername.set(profile.id, profile.username);
-
-          const isWeptune = profile.username.toLowerCase() === 'weptune';
+          const uLower = profile.username.toLowerCase();
+          const isWeptune = uLower === 'weptune';
+          const isAri = uLower === 'ari';
           let levelVal = 1;
 
           if (mode === 'PUZZLE') {
-            levelVal = isWeptune ? 23 : (profile.puzzle_max_level || 1);
+            if (isWeptune) levelVal = 23;
+            else if (isAri) levelVal = 9;
+            else levelVal = profile.puzzle_max_level || 1;
           } else {
-            levelVal = isWeptune ? Math.max(27, profile.max_level || 27) : (profile.max_level || 1);
+            // RECALL MODE
+            if (isWeptune) levelVal = Math.max(27, profile.max_level || 27);
+            else if (isAri) levelVal = Math.max(13, profile.max_level || 13);
+            else levelVal = profile.max_level || 1;
           }
 
-          map.set(profile.username.toLowerCase(), {
+          map.set(uLower, {
             id: profile.id,
             user_id: profile.id,
             username: profile.username,
@@ -322,43 +325,11 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
           });
         });
     }
-
-    // 3. Query score_history and map user_id to username
-    const { data: historyData } = await supabase
-      .from('score_history')
-      .select('user_id, level_reached, score, created_at');
-
-    if (historyData && historyData.length > 0) {
-      historyData.forEach((row: any) => {
-        const username = profileIdToUsername.get(row.user_id);
-        if (!username) return;
-
-        const isWeptune = username.toLowerCase() === 'weptune';
-        if (isWeptune) return; // weptune uses fixed defaults
-
-        const key = username.toLowerCase();
-        const existing = map.get(key);
-        const rowLvl = row.level_reached || 1;
-
-        if (!existing || existing.level_reached < rowLvl) {
-          map.set(key, {
-            id: `history-${key}`,
-            user_id: row.user_id,
-            username: username,
-            score: rowLvl * 100,
-            level_reached: rowLvl,
-            accuracy: 100,
-            mode: mode,
-            created_at: row.created_at || new Date().toISOString()
-          });
-        }
-      });
-    }
   } catch (err) {
     console.error("Error fetching global leaderboard:", err);
   }
 
-  // 4. Merge localEntries for current device
+  // 3. Merge localEntries for current device if higher
   localEntries.forEach((entry) => {
     const key = entry.username.toLowerCase();
     if (!map.has(key) || (map.get(key)?.level_reached || 0) < entry.level_reached) {
