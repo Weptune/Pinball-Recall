@@ -22,10 +22,11 @@ import {
   getCurrentUserSession, 
   fetchUserProfile, 
   saveUserProgress, 
+  fetchGlobalLeaderboard,
   signOutUser 
 } from './utils/supabaseClient';
 import { soundEngine } from './utils/soundEngine';
-import { RotateCcw, CheckCircle2 } from 'lucide-react';
+import { RotateCcw, CheckCircle2, TrendingUp, Award, Trophy } from 'lucide-react';
 
 type ScreenState = 'DASHBOARD' | 'PLAYING' | 'GAME_OVER';
 type GameRoundState = 'MEMORIZE' | 'PREDICT' | 'SIMULATE' | 'RESULT';
@@ -42,6 +43,11 @@ function App() {
   // User Authentication State
   const [currentUser, setCurrentUser] = useState<{ id: string; username: string } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Leaderboard Rank & Rank Jump state
+  const [leaderboardRankInfo, setLeaderboardRankInfo] = useState<{ newRank: number; oldRank: number; jump: number; isNewPb: boolean } | null>(null);
+  const initialLeaderboardRankRef = useRef<number | null>(null);
+  const isSessionNewPbRef = useRef<boolean>(false);
 
   // Gameplay Mode & Session stats
   const [gameMode, setGameMode] = useState<'RECALL' | 'PUZZLE'>('RECALL');
@@ -268,7 +274,7 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleStartGame = (mode: 'RECALL' | 'PUZZLE' = 'RECALL') => {
+  const handleStartGame = async (mode: 'RECALL' | 'PUZZLE' = 'RECALL') => {
     setGameMode(mode);
     setScore(0);
     setLevel(1);
@@ -276,7 +282,24 @@ function App() {
     setConsecutiveMistakes(0);
     setTrialCount(1);
     setCorrectAnswersCount(0);
+    setLeaderboardRankInfo(null);
+    isSessionNewPbRef.current = false;
     setScreen('PLAYING');
+
+    // Record initial leaderboard rank position before session starts
+    try {
+      const lb = await fetchGlobalLeaderboard(mode);
+      const userKey = currentUser ? currentUser.username.toLowerCase() : '';
+      if (userKey) {
+        const idx = lb.findIndex((e: any) => e.username.toLowerCase() === userKey);
+        initialLeaderboardRankRef.current = idx !== -1 ? idx + 1 : lb.length + 1;
+      } else {
+        initialLeaderboardRankRef.current = null;
+      }
+    } catch (_err) {
+      initialLeaderboardRankRef.current = null;
+    }
+
     startNewRound(1, mode);
   };
 
@@ -384,12 +407,14 @@ function App() {
       // Update Max Completed Level PB strictly upon successful round completion
       if (gameMode === 'PUZZLE') {
         if (level > puzzleMaxLevel) {
+          isSessionNewPbRef.current = true;
           setPuzzleMaxLevel(level);
           localStorage.setItem(`pinball_maxlevel_puzzle_${userKey}`, level.toString());
           localStorage.setItem('pinball_maxlevel_puzzle', level.toString());
         }
       } else {
         if (level > recallMaxLevel) {
+          isSessionNewPbRef.current = true;
           setRecallMaxLevel(level);
           localStorage.setItem(`pinball_maxlevel_recall_${userKey}`, level.toString());
           localStorage.setItem('pinball_maxlevel_recall', level.toString());
@@ -440,7 +465,7 @@ function App() {
     }
   };
 
-  const finishGameSession = () => {
+  const finishGameSession = async () => {
     setScreen('GAME_OVER');
 
     // Auto sync to Supabase if logged in
@@ -450,7 +475,7 @@ function App() {
       const maxLvlAchieved = gameMode === 'PUZZLE' ? puzzleMaxLevel : recallMaxLevel;
       const maxScoreAchieved = gameMode === 'PUZZLE' ? Math.max(score, puzzleHighScore) : Math.max(score, recallHighScore);
 
-      saveUserProgress(
+      await saveUserProgress(
         currentUser.id,
         currentUser.username,
         maxScoreAchieved,
@@ -460,6 +485,27 @@ function App() {
         totalAttempted,
         gameMode
       );
+
+      // Compute updated leaderboard rank position & rank jump
+      try {
+        const updatedLb = await fetchGlobalLeaderboard(gameMode);
+        const userKey = currentUser.username.toLowerCase();
+        const newIdx = updatedLb.findIndex((e: any) => e.username.toLowerCase() === userKey);
+        if (newIdx !== -1) {
+          const newRank = newIdx + 1;
+          const oldRank = initialLeaderboardRankRef.current !== null ? initialLeaderboardRankRef.current : (newRank + 1);
+          const jump = Math.max(0, oldRank - newRank);
+
+          setLeaderboardRankInfo({
+            newRank,
+            oldRank,
+            jump,
+            isNewPb: isSessionNewPbRef.current
+          });
+        }
+      } catch (err) {
+        console.error("Failed to compute leaderboard rank jump:", err);
+      }
     }
   };
 
@@ -544,7 +590,6 @@ function App() {
 
       {screen === 'GAME_OVER' && (() => {
         const currentModeMax = gameMode === 'PUZZLE' ? puzzleMaxLevel : recallMaxLevel;
-        const isNewPb = level >= currentModeMax && level > 1;
 
         return (
           <div className="solid-card summary-card">
@@ -556,21 +601,68 @@ function App() {
               }
             </p>
 
-            {isNewPb && (
+            {(isSessionNewPbRef.current || (leaderboardRankInfo && leaderboardRankInfo.isNewPb)) && (
               <div className="new-pb-banner" style={{
-                background: 'rgba(245, 158, 11, 0.15)',
+                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(34, 197, 94, 0.18))',
                 border: '1px solid rgba(245, 158, 11, 0.5)',
-                borderRadius: '10px',
-                padding: '0.6rem 1rem',
-                margin: '0.5rem 0 1rem 0',
+                borderRadius: '12px',
+                padding: '0.85rem 1rem',
+                margin: '0.75rem 0 1rem 0',
                 textAlign: 'center',
-                color: '#fef08a',
-                fontWeight: 800,
-                fontSize: '0.95rem',
-                letterSpacing: '0.05em',
-                boxShadow: '0 0 16px rgba(245, 158, 11, 0.25)'
+                boxShadow: '0 0 20px rgba(245, 158, 11, 0.2)'
               }}>
-                NEW PERSONAL BEST! LEVEL {level}
+                <div style={{
+                  color: '#fef08a',
+                  fontWeight: 800,
+                  fontSize: '1rem',
+                  letterSpacing: '0.05em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                  marginBottom: leaderboardRankInfo ? '0.5rem' : 0
+                }}>
+                  <Trophy style={{ width: '18px', height: '18px', color: '#f59e0b' }} />
+                  <span>NEW PERSONAL BEST! LEVEL {currentModeMax}</span>
+                </div>
+
+                {leaderboardRankInfo && (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    paddingTop: '0.45rem',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.12)'
+                  }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Award style={{ width: '15px', height: '15px', color: '#38bdf8' }} />
+                      <span>Global Leaderboard Rank: <strong style={{ color: '#38bdf8' }}>#{leaderboardRankInfo.newRank}</strong></span>
+                    </div>
+
+                    {leaderboardRankInfo.jump > 0 ? (
+                      <div style={{
+                        fontSize: '0.8rem',
+                        fontWeight: 800,
+                        color: '#22c55e',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                        background: 'rgba(34, 197, 94, 0.15)',
+                        padding: '0.2rem 0.65rem',
+                        borderRadius: '20px',
+                        border: '1px solid rgba(34, 197, 94, 0.3)'
+                      }}>
+                        <TrendingUp style={{ width: '14px', height: '14px' }} />
+                        <span>Rank Jump: +{leaderboardRankInfo.jump} {leaderboardRankInfo.jump === 1 ? 'position' : 'positions'} (#{leaderboardRankInfo.oldRank} → #{leaderboardRankInfo.newRank})</span>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8' }}>
+                        Maintained Rank #{leaderboardRankInfo.newRank}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
