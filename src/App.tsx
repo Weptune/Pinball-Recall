@@ -15,7 +15,8 @@ import {
   generatePuzzleRound,
   rotateBumperInList,
   tracePath,
-  getExitPoint 
+  getExitPoint,
+  getMinimalOnPathSolutionBumpers
 } from './utils/gameLogic';
 import { 
   getCurrentUserSession, 
@@ -208,13 +209,17 @@ function App() {
       setLaunchPoint(puzzleData.launcher);
       setTargetExit(puzzleData.targetExit);
       
-      // Collect all bumpers inverted during scrambling to guarantee a 100% accurate solution list
-      const relevantInvertedBumpers = puzzleData.scrambledBumpers.filter(
-        b => puzzleData.invertedBumperIds.has(b.id)
+      // Calculate ONLY the minimal bumpers on the actual ball trajectory that need to be flipped
+      const minimalBumpersToFlip = getMinimalOnPathSolutionBumpers(
+        config.gridSize,
+        puzzleData.scrambledBumpers,
+        puzzleData.launcher,
+        puzzleData.targetExit,
+        puzzleData.invertedBumperIds
       );
 
-      // (Row, Col) 1-indexed format: e.g. (R2,C4)
-      const hintCoords = relevantInvertedBumpers.map(b => `(R${b.y + 1},C${b.x + 1})`);
+      // Format as (Row, Col) 1-indexed: e.g. (R2,C4)
+      const hintCoords = minimalBumpersToFlip.map(b => `(R${b.y + 1},C${b.x + 1})`);
       setPuzzleSolutionHint(hintCoords.length > 0 ? hintCoords.join(', ') : 'None');
 
       const currentPath = tracePath(config.gridSize, puzzleData.scrambledBumpers, puzzleData.launcher);

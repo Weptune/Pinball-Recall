@@ -453,3 +453,72 @@ export function rotateBumperInList(bumpers: Bumper[], id: string): Bumper[] {
   });
 }
 
+/**
+ * Finds the MINIMAL set of bumpers along the actual trajectory path
+ * that must be flipped for the ball to reach targetExit (eliminating unneeded decoy flips).
+ */
+export function getMinimalOnPathSolutionBumpers(
+  gridSize: number,
+  scrambledBumpers: Bumper[],
+  launcher: LaunchPoint,
+  targetExit: Position,
+  invertedBumperIds: Set<string>
+): Bumper[] {
+  const invertedArray = scrambledBumpers.filter(b => invertedBumperIds.has(b.id));
+  const k = invertedArray.length;
+  const numSubsets = 1 << k;
+
+  let bestSubset: Bumper[] | null = null;
+
+  // Search all subsets ordered by subset size (1 to k) for the minimal flip solution
+  for (let mask = 1; mask < numSubsets; mask++) {
+    const candidateSubset: Bumper[] = [];
+    const subsetIdSet = new Set<string>();
+
+    for (let i = 0; i < k; i++) {
+      if ((mask & (1 << i)) !== 0) {
+        candidateSubset.push(invertedArray[i]);
+        subsetIdSet.add(invertedArray[i].id);
+      }
+    }
+
+    // Construct test board flipping only candidateSubset
+    const testBoard = scrambledBumpers.map(b => {
+      if (subsetIdSet.has(b.id)) {
+        return {
+          ...b,
+          type: b.type === 'FORWARD' ? ('BACK' as const) : ('FORWARD' as const),
+        };
+      }
+      return { ...b };
+    });
+
+    const path = tracePath(gridSize, testBoard, launcher);
+    const exit = getExitPoint(path);
+
+    // Must reach targetExit
+    if (exit.x === targetExit.x && exit.y === targetExit.y) {
+      // Collect bumpers actually hit along this path
+      const hitBumperIds = new Set<string>();
+      path.forEach(step => {
+        if (step.isBumperHit) {
+          const hitB = testBoard.find(b => b.x === step.x && b.y === step.y);
+          if (hitB) hitBumperIds.add(hitB.id);
+        }
+      });
+
+      // Verify EVERY bumper in candidateSubset was actually hit on this path!
+      const allFlipsHit = candidateSubset.every(b => hitBumperIds.has(b.id));
+
+      if (allFlipsHit) {
+        if (!bestSubset || candidateSubset.length < bestSubset.length) {
+          bestSubset = candidateSubset;
+        }
+      }
+    }
+  }
+
+  // Fallback to all inverted bumpers if subset search yields none
+  return bestSubset || invertedArray;
+}
+
