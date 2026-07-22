@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, BookOpen, Award, Users, HelpCircle, User, LogOut, RefreshCw } from 'lucide-react';
+import { Play, BookOpen, Award, Users, HelpCircle, User, LogOut, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { soundEngine } from '../utils/soundEngine';
 import { 
   fetchGlobalLeaderboard, 
@@ -32,6 +32,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [leaderboardMode, setLeaderboardMode] = useState<'RECALL' | 'PUZZLE'>('RECALL');
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const isConfigured = isSupabaseConfigured();
 
@@ -44,10 +45,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const handleTabClick = (tab: 'solo' | 'multiplayer' | 'leaderboards') => {
     soundEngine.playClick();
     setActiveTab(tab);
+    if (tab === 'leaderboards') {
+      setCurrentPage(1);
+    }
   };
 
   const loadLeaderboards = async (modeToFetch: 'RECALL' | 'PUZZLE' = leaderboardMode) => {
     setLoadingLeaderboard(true);
+    setCurrentPage(1);
     try {
       const data = await fetchGlobalLeaderboard(modeToFetch);
       setLeaderboardData(data || []);
@@ -262,29 +267,72 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 ) : leaderboardData.length === 0 ? (
                   <div style={{ padding: '1.5rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
-                    No scores recorded yet. Complete a 25-trial session to claim rank #1!
+                    No scores recorded yet. Complete a session to claim rank #1!
                   </div>
-                ) : (
-                  <div className="leaderboard-scroll-list">
-                    {leaderboardData.map((entry, index) => (
-                      <div key={entry.id || index} className="leaderboard-row-item">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                          <span className={`rank-badge ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}`}>
-                            #{index + 1}
-                          </span>
-                          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff' }}>
-                            {entry.username || entry.user_email || 'Player'}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#22c55e', fontFamily: 'var(--font-display)' }}>
-                            Lvl {entry.level_reached}
-                          </span>
-                        </div>
+                ) : (() => {
+                  const PAGE_SIZE = 50;
+                  const totalPages = Math.max(1, Math.ceil(leaderboardData.length / PAGE_SIZE));
+                  const startIndex = (currentPage - 1) * PAGE_SIZE;
+                  const paginatedData = leaderboardData.slice(startIndex, startIndex + PAGE_SIZE);
+
+                  return (
+                    <>
+                      <div className="leaderboard-scroll-list">
+                        {paginatedData.map((entry, index) => {
+                          const absoluteRank = startIndex + index + 1;
+                          return (
+                            <div key={entry.id || absoluteRank} className="leaderboard-row-item">
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                <span className={`rank-badge ${absoluteRank === 1 ? 'gold' : absoluteRank === 2 ? 'silver' : absoluteRank === 3 ? 'bronze' : ''}`}>
+                                  #{absoluteRank}
+                                </span>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff' }}>
+                                  {entry.username || entry.user_email || 'Player'}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#22c55e', fontFamily: 'var(--font-display)' }}>
+                                  Lvl {entry.level_reached}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
-                )}
+
+                      {/* Pagination Controls */}
+                      {totalPages > 1 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                          <button
+                            type="button"
+                            disabled={currentPage === 1}
+                            onClick={() => { soundEngine.playClick(); setCurrentPage(prev => Math.max(1, prev - 1)); }}
+                            className="icon-btn"
+                            style={{ width: '30px', height: '30px', opacity: currentPage === 1 ? 0.35 : 1, cursor: currentPage === 1 ? 'default' : 'pointer' }}
+                            title="Previous Page"
+                          >
+                            <ChevronLeft style={{ width: '15px', height: '15px' }} />
+                          </button>
+
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8' }}>
+                            Page {currentPage} of {totalPages} ({leaderboardData.length} Players)
+                          </span>
+
+                          <button
+                            type="button"
+                            disabled={currentPage === totalPages}
+                            onClick={() => { soundEngine.playClick(); setCurrentPage(prev => Math.min(totalPages, prev + 1)); }}
+                            className="icon-btn"
+                            style={{ width: '30px', height: '30px', opacity: currentPage === totalPages ? 0.35 : 1, cursor: currentPage === totalPages ? 'default' : 'pointer' }}
+                            title="Next Page"
+                          >
+                            <ChevronRight style={{ width: '15px', height: '15px' }} />
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             )}
           </div>
