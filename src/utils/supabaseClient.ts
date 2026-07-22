@@ -247,9 +247,10 @@ export async function saveUserProgress(
       await supabase.from('profiles').update(fallbackUpdates).eq('id', userId);
     }
 
-    // Insert into score_history using valid schema columns (user_id, score, level_reached, accuracy)
+    // Insert into score_history tagging the game mode in user_email
     await supabase.from('score_history').insert({
       user_id: userId,
+      user_email: mode,
       score: sessionScore,
       level_reached: endingLevel,
       accuracy: accuracyPercent,
@@ -293,10 +294,14 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
       .from('profiles')
       .select(`id, username, max_level, updated_at`);
 
+    const profileIdToUsername = new Map<string, string>();
+
     if (profileData && profileData.length > 0) {
       profileData
         .filter((profile: any) => Boolean(profile.username))
         .forEach((profile: any) => {
+          profileIdToUsername.set(profile.id, profile.username);
+
           const uLower = profile.username.toLowerCase();
           const isWeptune = uLower === 'weptune';
           const isAri = uLower === 'ari';
@@ -325,11 +330,47 @@ export async function fetchGlobalLeaderboard(mode: 'RECALL' | 'PUZZLE' = 'RECALL
           });
         });
     }
+
+    // 3. Query score_history and aggregate mode-matching session entries
+    const { data: historyData } = await supabase
+      .from('score_history')
+      .select('user_id, user_email, level_reached, score, created_at');
+
+    if (historyData && historyData.length > 0) {
+      historyData.forEach((row: any) => {
+        const username = profileIdToUsername.get(row.user_id);
+        if (!username) return;
+
+        const isWeptune = username.toLowerCase() === 'weptune';
+        if (isWeptune) return; // weptune uses fixed defaults
+
+        // Match mode tag in user_email
+        const rowMode = row.user_email ? row.user_email : 'RECALL';
+        if (rowMode !== mode) return;
+
+        const key = username.toLowerCase();
+        const existing = map.get(key);
+        const rowLvl = row.level_reached || 1;
+
+        if (!existing || existing.level_reached < rowLvl) {
+          map.set(key, {
+            id: `history-${key}`,
+            user_id: row.user_id,
+            username: username,
+            score: rowLvl * 100,
+            level_reached: rowLvl,
+            accuracy: 100,
+            mode: mode,
+            created_at: row.created_at || new Date().toISOString()
+          });
+        }
+      });
+    }
   } catch (err) {
     console.error("Error fetching global leaderboard:", err);
   }
 
-  // 3. Merge localEntries for current device if higher
+  // 4. Merge localEntries for current device if higher
   localEntries.forEach((entry) => {
     const key = entry.username.toLowerCase();
     if (!map.has(key) || (map.get(key)?.level_reached || 0) < entry.level_reached) {
